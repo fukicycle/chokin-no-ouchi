@@ -31,7 +31,7 @@ const Dashboard = () => {
   const { currentUser } = useAuth();
   const { userData, loading: userLoading } = useUserData();
 
-  const familyId = userData?.familyId || "family_id_A";
+  const familyId = userData.familyId;
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(today.getFullYear());

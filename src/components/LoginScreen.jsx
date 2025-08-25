@@ -13,10 +13,11 @@ const LoginScreen = () => {
       const snapshot = await get(userRef);
 
       if (!snapshot.exists()) {
+        const familyId = Math.random().toString(36).substring(2, 10).toUpperCase();
         await set(userRef, {
           email: user.email,
           displayName: user.displayName,
-          familyId: null,
+          familyId,
         });
       }
     } catch (error) {
