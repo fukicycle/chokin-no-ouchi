@@ -1,0 +1,24 @@
+{
+  "name": "貯金のおうち",
+  "short_name": "貯金のおうち",
+  "description": "家族みんなで楽しく共同で支出管理できるグラスモルフィズム家計簿",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    }
+  ]
+}

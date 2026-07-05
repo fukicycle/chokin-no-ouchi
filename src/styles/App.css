@@ -3,21 +3,29 @@
 @tailwind utilities;
 
 /* Custom background for light and dark modes */
-html, body {
+html {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 50%, #f5f3ff 100%);
+  background-attachment: fixed;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-body {
-  background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 50%, #f5f3ff 100%);
+html.dark {
+  background: linear-gradient(135deg, #0f172a 0%, #111827 50%, #030712 100%);
   background-attachment: fixed;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: transparent; /* htmlのグラデーションを引き継ぐ */
+  transition: color 0.3s ease;
+}
+
 html.dark body {
-  background: linear-gradient(135deg, #0f172a 0%, #111827 50%, #030712 100%);
-  background-attachment: fixed;
   color: #f1f5f9;
 }
 

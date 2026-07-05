@@ -197,7 +197,7 @@ const Dashboard = () => {
         極上のUX ＆ アクセシビリティ：常時固定（Sticky）マルチレスポンシブヘッダー
         - モバイル版：1段目にウェルカム＆ボタンを配置し、2段目に月・年選択ナビゲーションを美しく常時固定。
       */}
-      <header className="sticky top-0 z-40 bg-white/30 dark:bg-black/20 backdrop-blur-xl border-b border-white/40 dark:border-white/10 shadow-md px-4 sm:px-6 py-3.5 grid grid-cols-2 md:flex md:items-center md:justify-between gap-y-3.5 md:gap-y-0">
+      <header className="sticky top-0 z-40 bg-white/30 dark:bg-black/20 backdrop-blur-xl border-b border-white/40 dark:border-white/10 shadow-md px-4 sm:px-6 pt-[calc(14px+env(safe-area-inset-top,0px))] pb-3.5 grid grid-cols-2 md:flex md:items-center md:justify-between gap-y-3.5 md:gap-y-0">
         
         {/* ウェルカムエリア (モバイル: 1段目左, PC: 左端) */}
         <div className="flex flex-col col-span-1">
