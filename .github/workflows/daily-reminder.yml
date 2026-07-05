@@ -1,0 +1,32 @@
+name: デイリーリマインダープッシュ通知
+
+on:
+  schedule:
+    # 協定世界時 (UTC) の 13:00 は、日本時間 (JST) の 22:00 です。
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+    # 手動起動できるようにして、テストや開発を便利にします。
+
+jobs:
+  send-reminder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.js のセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: 依存関係のインストール
+        run: npm ci
+
+      - name: リマインダー通知スクリプトの実行
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: node scripts/send-reminders.js
