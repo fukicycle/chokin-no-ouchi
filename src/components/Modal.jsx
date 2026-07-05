@@ -23,7 +23,7 @@ const Modal = ({ children, onClose, title, isChildModal = false }) => {
       } ${isChildModal ? "" : "bg-gray-900/50 backdrop-blur-sm"}`}
     >
       <div
-        className="bg-bg-secondary w-full max-w-md mx-4 p-6 rounded-3xl border border-white/20 transform transition-transform duration-300"
+        className="glass-modal w-full max-w-md mx-4 p-6 rounded-3xl border border-white/20 dark:border-white/10 text-text-dark dark:text-gray-100 transform transition-transform duration-300"
         style={{
           ...shadowStyle,
           animation: `${isClosing ? "modal-out" : "modal-in"} 0.3s forwards`,
@@ -33,7 +33,7 @@ const Modal = ({ children, onClose, title, isChildModal = false }) => {
           {title && <h3 className="text-xl font-bold">{title}</h3>}
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors duration-200"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none transition-colors duration-200"
           >
             <FontAwesomeIcon icon={faTimes} className="text-2xl" />
           </button>
