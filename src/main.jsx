@@ -19,7 +19,7 @@ createRoot(document.getElementById("root")).render(
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register("/sw.js")
+      .register("/chokin-no-ouchi/sw.js")
       .then((reg) => console.log("Service Worker registered successfully:", reg))
       .catch((err) => console.error("Service Worker registration failed:", err));
   });
