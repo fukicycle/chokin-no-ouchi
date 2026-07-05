@@ -50,7 +50,15 @@ const sendReminders = async () => {
     const users = usersSnapshot.val() || {};
 
     const userKeys = Object.keys(users);
-    console.log(`全登録ユーザー数: ${userKeys.length}人`);
+    
+    // セキュリティ＆プライバシー保護：ユーザー名やファミリーIDなどの個人特定情報をログに出さず、集計サマリーで出力します
+    let totalUsers = userKeys.length;
+    let unsubscribedCount = 0;
+    let missingFamilyCount = 0;
+    let registeredTodayCount = 0;
+    let sendSuccessCount = 0;
+    let sendFailCount = 0;
+    let expiredSubscriptionsCount = 0;
 
     for (const uid of userKeys) {
       const user = users[uid];
@@ -58,12 +66,12 @@ const sendReminders = async () => {
       const familyId = user.familyId;
 
       if (!subscription) {
-        console.log(`- ユーザー [${user.displayName || uid}] は通知を有効にしていません。スキップ。`);
+        unsubscribedCount++;
         continue;
       }
 
       if (!familyId) {
-        console.log(`- ユーザー [${user.displayName || uid}] はファミリーIDがありません。スキップ。`);
+        missingFamilyCount++;
         continue;
       }
 
@@ -78,12 +86,11 @@ const sendReminders = async () => {
       });
 
       if (hasRegisteredToday) {
-        console.log(`- ファミリー [${familyId}] (ユーザー: ${user.displayName}) は今日すでに登録済みです。通知を自動スキップ。`);
+        registeredTodayCount++;
         continue;
       }
 
       // 今日未登録のユーザーへ Web Push 配信
-      console.log(`- ユーザー [${user.displayName}] へリマインダー通知を送信します...`);
       const payload = JSON.stringify({
         title: "貯金のおうち 🏠",
         body: "今日の支出は登録しましたか？おうちの家計簿を更新しましょう！",
@@ -92,19 +99,33 @@ const sendReminders = async () => {
 
       try {
         await webpush.sendNotification(subscription, payload);
-        console.log(`  => 送信成功!`);
+        sendSuccessCount++;
       } catch (pushError) {
         // 410 (Gone) や 404 などのエラーは、購読が失効していることを示すためDBからクリーンアップ
         if (pushError.statusCode === 410 || pushError.statusCode === 404) {
-          console.warn(`  => 購読が失効しているため削除します (ステータス: ${pushError.statusCode})`);
+          expiredSubscriptionsCount++;
           await db.ref(`users/${uid}/pushSubscription`).remove();
         } else {
-          console.error(`  => 送信エラー:`, pushError.message);
+          sendFailCount++;
+          console.error(`- 通知送信エラー (匿名):`, pushError.message);
         }
       }
     }
 
-    console.log("=== デイリーリマインダー通知処理の正常終了 ===");
+    console.log("\n=== デイリーリマインダー通知処理の正常終了 ===");
+    console.log(`- 全登録ユーザー: ${totalUsers}人`);
+    console.log(`- 通知未設定スキップ: ${unsubscribedCount}人`);
+    console.log(`- ファミリーID未設定スキップ: ${missingFamilyCount}人`);
+    console.log(`- 本日登録済みファミリー（通知スキップ）: ${registeredTodayCount}人`);
+    console.log(`- リマインダー通知送信 成功: ${sendSuccessCount}人`);
+    if (sendFailCount > 0) {
+      console.log(`- リマインダー通知送信 失敗: ${sendFailCount}人`);
+    }
+    if (expiredSubscriptionsCount > 0) {
+      console.log(`- 失効したプッシュ登録の自動削除: ${expiredSubscriptionsCount}件`);
+    }
+    console.log("=========================================\n");
+
     process.exit(0);
   } catch (error) {
     console.error("致命的なエラーが発生しました:", error);
