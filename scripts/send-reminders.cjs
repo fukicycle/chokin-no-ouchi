@@ -1,4 +1,5 @@
-const admin = require('firebase-admin');
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getDatabase } = require('firebase-admin/database');
 const webpush = require('web-push');
 
 // 鍵が環境変数に設定されているかチェック
@@ -11,14 +12,14 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
   process.exit(1);
 }
 
-// 1. Firebase Admin SDK の初期化
+// 1. Firebase Admin SDK の初期化 (モジュラー形式)
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+initializeApp({
+  credential: cert(serviceAccount),
   databaseURL: "https://chokin-no-ouchi-default-rtdb.asia-southeast1.firebasedatabase.app/"
 });
 
-const db = admin.database();
+const db = getDatabase();
 
 // 2. Web Push の VAPID 情報を設定
 webpush.setVapidDetails(
