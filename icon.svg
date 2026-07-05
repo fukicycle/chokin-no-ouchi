@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- グラデーションの定義：シアン（#00bcd4）からピンク（#f06292）への洗練された流れ -->
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="50%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.2" />
+    </filter>
+  </defs>
+
+  <!-- 角丸背景 -->
+  <rect width="512" height="512" rx="128" fill="url(#iconGradient)" />
+
+  <!-- 中央のシンボルグループ -->
+  <g filter="url(#dropShadow)">
+    <!-- おうちの形 -->
+    <path d="M156 384 V240 L256 144 L356 240 V384 Z" fill="#ffffff" />
+    <!-- おうちの屋根 (より強調されたデザイン) -->
+    <path d="M120 250 L256 114 L392 250" stroke="#ffffff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    
+    <!-- コインスロット (貯金箱の投入口) -->
+    <rect x="236" y="200" width="40" height="12" rx="6" fill="#0f172a" opacity="0.8" />
+    
+    <!-- おうちの中に浮かぶコイン -->
+    <circle cx="256" cy="300" r="32" fill="#fbbf24" />
+    <!-- コインの中の装飾（￥マーク） -->
+    <text x="256" y="309" font-family="system-ui, sans-serif" font-size="28" font-weight="900" fill="#ffffff" text-anchor="middle">¥</text>
+  </g>
+</svg>
