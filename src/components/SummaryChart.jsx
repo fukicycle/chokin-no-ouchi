@@ -23,7 +23,7 @@ const SummaryChart = ({ expenses, viewMode = 'month' }) => {
 
   return (
     <div className="flex flex-col items-center justify-center p-2 text-text-dark dark:text-gray-100">
-      <h3 className="text-4xl font-extrabold text-text-dark dark:text-white tracking-tight mb-1">
+      <h3 className="text-4xl font-black tracking-tight mb-1 bg-gradient-to-r from-cyan-600 to-pink-600 dark:from-cyan-400 dark:to-pink-400 bg-clip-text text-transparent">
         ¥{totalAmount.toLocaleString()}
       </h3>
       <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-6 uppercase tracking-wider">

@@ -22,6 +22,12 @@ const SpendingTrendCard = ({ data, viewMode = 'month' }) => {
         <div className="w-full h-[200px] mt-2">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="trendLineGradient" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#22d3ee" />
+                  <stop offset="100%" stopColor="#f06292" />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
               <XAxis 
                 dataKey="name" 
@@ -50,13 +56,13 @@ const SpendingTrendCard = ({ data, viewMode = 'month' }) => {
                 labelStyle={{ fontWeight: 'bold' }}
                 formatter={(value) => [`¥${value.toLocaleString()}`, '総支出']}
               />
-              <Line 
-                type="monotone" 
-                dataKey="支出" 
-                stroke="#f06292" 
-                strokeWidth={3} 
+              <Line
+                type="monotone"
+                dataKey="支出"
+                stroke="url(#trendLineGradient)"
+                strokeWidth={3.5}
                 activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
-                dot={{ r: 4, strokeWidth: 1 }}
+                dot={{ r: 4, strokeWidth: 1, fill: '#f06292' }}
               />
             </LineChart>
           </ResponsiveContainer>
