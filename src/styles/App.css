@@ -11,14 +11,16 @@ html {
      実際のスクロールはアプリシェル内側の.app-shell-scrollのみが担う。 */
   overflow: hidden;
   overscroll-behavior: none;
+  /* background-attachment: fixed はここでは不要(htmlはoverflow:hiddenで
+     そもそもスクロールしない)な上、iOSのstandalone PWAでは背景の再描画が
+     画面端(特にsafe-area付近)で欠落し、地の白背景が露出するバグの原因になる
+     ため使用しない。 */
   background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 50%, #f5f3ff 100%);
-  background-attachment: fixed;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 html.dark {
   background: linear-gradient(135deg, #0f172a 0%, #111827 50%, #030712 100%);
-  background-attachment: fixed;
 }
 
 body {
