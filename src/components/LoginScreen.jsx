@@ -1,28 +1,23 @@
-import React from "react";
-import { signInWithPopup, signInWithRedirect } from "firebase/auth";
+import React, { useState } from "react";
+import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase/config";
 import { ensureUserDoc } from "../firebase/ensureUserDoc";
 import { useTheme } from "../context/ThemeContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 
-// iOS Safari / ホーム画面PWAはポップアップのブロックやITPの影響で
-// signInWithPopup が不安定なため、リダイレクト方式にフォールバックする
-const isIOS = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-
-const LoginScreen = ({ authError }) => {
+const LoginScreen = () => {
   const { theme, toggleTheme } = useTheme();
+  const [signInError, setSignInError] = useState(null);
 
   const handleGoogleSignIn = async () => {
+    setSignInError(null);
     try {
-      if (isIOS()) {
-        await signInWithRedirect(auth, googleProvider);
-        return;
-      }
       const result = await signInWithPopup(auth, googleProvider);
       await ensureUserDoc(result.user);
     } catch (error) {
       console.error("Google認証エラー:", error);
+      setSignInError(`${error.code || "unknown"}: ${error.message || error}`);
     }
   };
 
@@ -63,9 +58,9 @@ const LoginScreen = ({ authError }) => {
           </button>
         </div>
 
-        {authError && (
+        {signInError && (
           <p className="text-xs font-bold text-red-600 dark:text-red-400 whitespace-pre-wrap break-words">
-            ログインエラー: {authError}
+            ログインエラー: {signInError}
           </p>
         )}
       </div>

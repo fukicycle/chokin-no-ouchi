@@ -4,12 +4,10 @@ import Dashboard from "./Dashboard";
 import LoginScreen from "./LoginScreen";
 
 function App() {
-  const { currentUser, authError } = useAuth();
+  const { currentUser } = useAuth();
 
   return (
-    <div className="App h-full">
-      {currentUser ? <Dashboard /> : <LoginScreen authError={authError} />}
-    </div>
+    <div className="App h-full">{currentUser ? <Dashboard /> : <LoginScreen />}</div>
   );
 }
 
