@@ -10,7 +10,7 @@ import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 // signInWithPopup が不安定なため、リダイレクト方式にフォールバックする
 const isIOS = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent);
 
-const LoginScreen = () => {
+const LoginScreen = ({ authError }) => {
   const { theme, toggleTheme } = useTheme();
 
   const handleGoogleSignIn = async () => {
@@ -62,6 +62,12 @@ const LoginScreen = () => {
             Googleでサインイン
           </button>
         </div>
+
+        {authError && (
+          <p className="text-xs font-bold text-red-600 dark:text-red-400 whitespace-pre-wrap break-words">
+            ログインエラー: {authError}
+          </p>
+        )}
       </div>
     </div>
   );
