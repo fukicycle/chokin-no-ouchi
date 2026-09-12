@@ -193,7 +193,7 @@ const Dashboard = () => {
 
   if (!currentUser || userLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-xl font-bold text-slate-700 dark:text-slate-200">
+      <div className="flex items-center justify-center h-full text-xl font-bold text-slate-700 dark:text-slate-200">
         読み込み中...
       </div>
     );

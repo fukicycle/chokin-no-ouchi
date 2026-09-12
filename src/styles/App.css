@@ -10,6 +10,7 @@ html {
   /* 一番外側をhiddenにして、ヘッダーの位置をスクロールから切り離して固定する。
      実際のスクロールはアプリシェル内側の.app-shell-scrollのみが担う。 */
   overflow: hidden;
+  overscroll-behavior: none;
   background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 50%, #f5f3ff 100%);
   background-attachment: fixed;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -25,6 +26,7 @@ body {
   padding: 0;
   height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   background: transparent; /* htmlのグラデーションを引き継ぐ */
   transition: color 0.3s ease;
 }
@@ -38,10 +40,13 @@ html.dark body {
 }
 
 /* アプリ全体を覆う固定シェル。ヘッダー/ボトムナビは常にこの中で
-   静止し、.app-shell-scrollだけが独立してスクロールする。 */
+   静止し、.app-shell-scrollだけが独立してスクロールする。
+   iOSのstandalone PWAでは100vh/100dvhがステータスバー/ホームインジケーター
+   分の計算タイミングによって間欠的にズレ、下部に地の白背景が露出することが
+   あるため、html/body/#root/.Appで既に確定している height:100% の連鎖を
+   そのまま引き継ぐ（viewport単位の再計算に依存しない）。 */
 .app-shell {
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -51,6 +56,7 @@ html.dark body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
