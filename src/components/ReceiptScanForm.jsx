@@ -189,9 +189,9 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
                     </span>
                   )}
                   {item.status === "error" && (
-                    <span className="flex items-center space-x-1.5 text-xs font-bold text-red-600 dark:text-red-400">
-                      <FontAwesomeIcon icon={faExclamationTriangle} />
-                      <span className="truncate">{item.error}</span>
+                    <span className="flex items-start space-x-1.5 text-xs font-bold text-red-600 dark:text-red-400">
+                      <FontAwesomeIcon icon={faExclamationTriangle} className="mt-0.5 flex-shrink-0" />
+                      <span className="whitespace-pre-wrap break-words">{item.error}</span>
                     </span>
                   )}
                 </div>
