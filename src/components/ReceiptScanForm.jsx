@@ -226,7 +226,7 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
                       list="receipt-category-options"
                       value={item.data.category}
                       onChange={(e) => handleFieldChange(item.id, "category", e.target.value)}
-                      className="w-full p-2 text-sm bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400"
+                      className="w-full p-2 text-base bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400"
                     />
                   </div>
                   <div className="col-span-1">
@@ -238,7 +238,7 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
                       min="0"
                       value={item.data.amount}
                       onChange={(e) => handleFieldChange(item.id, "amount", e.target.value)}
-                      className="w-full p-2 text-sm bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400"
+                      className="w-full p-2 text-base bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400"
                     />
                   </div>
                   <div className="col-span-2">
@@ -249,7 +249,7 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
                       type="text"
                       value={item.data.description}
                       onChange={(e) => handleFieldChange(item.id, "description", e.target.value)}
-                      className="w-full p-2 text-sm bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400"
+                      className="w-full p-2 text-base bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400"
                     />
                   </div>
                   <div className="col-span-2">
@@ -260,7 +260,7 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
                       type="date"
                       value={item.data.date}
                       onChange={(e) => handleFieldChange(item.id, "date", e.target.value)}
-                      className="w-full p-2 text-sm bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400"
+                      className="w-full p-2 text-base bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400"
                     />
                   </div>
                 </div>

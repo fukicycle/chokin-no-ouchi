@@ -255,7 +255,7 @@ const ExpenseList = ({
             : "このカテゴリーの支出データは見つかりませんでした。"}
         </div>
       ) : (
-        <ul className="space-y-3 max-h-80 overflow-y-auto pr-1">
+        <ul className="space-y-3">
           {processedExpenses.map((expense) => (
             <li
               key={expense.id}

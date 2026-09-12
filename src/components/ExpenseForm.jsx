@@ -117,7 +117,7 @@ const ExpenseForm = ({ userId, familyId, onClose, expense = null }) => {
           value={date}
           onChange={(e) => setDate(e.target.value)}
           required
-          className="w-full max-w-full box-border p-3 bg-white/25 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl text-slate-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+          className="w-full max-w-full box-border p-3 bg-white/25 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl text-slate-800 dark:text-white text-base focus:outline-none focus:ring-2 focus:ring-pink-500"
         />
       </div>
 

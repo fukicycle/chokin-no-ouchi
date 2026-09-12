@@ -210,6 +210,13 @@ html.dark ::-webkit-scrollbar-thumb {
   background: rgba(0, 188, 212, 0.4);
 }
 
+/* Safari ignores width:100% on input[type="date"] and lets it overflow its
+   container unless min-width is explicitly reset (its UA stylesheet gives
+   it an intrinsic min-width based on the locale date format). */
+input[type="date"] {
+  min-width: 0;
+}
+
 /* Modal in animation */
 @keyframes modal-in {
   from {

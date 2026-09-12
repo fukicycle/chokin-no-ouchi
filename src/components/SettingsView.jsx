@@ -270,7 +270,7 @@ const SettingsView = ({ familyId, onSignOut }) => {
               value={budgetInput}
               onChange={(e) => setBudgetInput(e.target.value)}
               placeholder="例: 150000"
-              className="flex-1 p-3 bg-white/20 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400 focus:border-transparent dark:text-white text-sm"
+              className="flex-1 p-3 bg-white/20 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400 focus:border-transparent dark:text-white text-base"
             />
             <button
               type="submit"
@@ -323,7 +323,7 @@ const SettingsView = ({ familyId, onSignOut }) => {
               placeholder="家族のファミリーIDを入力"
               maxLength={12}
               required
-              className="w-full p-3 bg-white/20 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400 focus:border-transparent dark:text-white text-sm"
+              className="w-full p-3 bg-white/20 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400 focus:border-transparent dark:text-white text-base"
             />
             <button
               type="submit"
@@ -354,7 +354,7 @@ const SettingsView = ({ familyId, onSignOut }) => {
                 value={apiKeyInput}
                 onChange={(e) => setApiKeyInput(e.target.value)}
                 placeholder="Gemini APIキーを入力"
-                className="w-full p-3 pr-10 bg-white/20 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400 focus:border-transparent dark:text-white text-sm"
+                className="w-full p-3 pr-10 bg-white/20 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400 focus:border-transparent dark:text-white text-base"
               />
               <button
                 type="button"
@@ -429,7 +429,7 @@ const SettingsView = ({ familyId, onSignOut }) => {
                 value={oldCategory}
                 onChange={(e) => setOldCategory(e.target.value)}
                 required
-                className="w-full p-2.5 bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl text-slate-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="w-full p-2.5 bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl text-slate-800 dark:text-white text-base focus:outline-none focus:ring-2 focus:ring-pink-500"
               >
                 <option value="" className="text-gray-500">カテゴリーを選択してください</option>
                 {categories.map((cat, index) => (
@@ -455,7 +455,7 @@ const SettingsView = ({ familyId, onSignOut }) => {
                 onChange={(e) => setNewCategory(e.target.value)}
                 placeholder="新しい名前、または既存カテゴリーを選択"
                 required
-                className="w-full p-2.5 bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:text-white text-sm"
+                className="w-full p-2.5 bg-white/30 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:text-white text-base"
               />
               <datalist id="existing-categories">
                 {categories.map((cat, index) => (
