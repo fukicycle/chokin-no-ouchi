@@ -1,37 +1,33 @@
 import React from "react";
-import { signInWithPopup } from "firebase/auth";
-import { ref, set, get } from "firebase/database";
-import { auth, database, googleProvider } from "../firebase/config";
+import { signInWithPopup, signInWithRedirect } from "firebase/auth";
+import { auth, googleProvider } from "../firebase/config";
+import { ensureUserDoc } from "../firebase/ensureUserDoc";
 import { useTheme } from "../context/ThemeContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+
+// iOS Safari / ホーム画面PWAはポップアップのブロックやITPの影響で
+// signInWithPopup が不安定なため、リダイレクト方式にフォールバックする
+const isIOS = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent);
 
 const LoginScreen = () => {
   const { theme, toggleTheme } = useTheme();
 
   const handleGoogleSignIn = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      const userRef = ref(database, `users/${user.uid}`);
-      const snapshot = await get(userRef);
-
-      if (!snapshot.exists()) {
-        const familyId = Math.random().toString(36).substring(2, 10).toUpperCase();
-        await set(userRef, {
-          email: user.email,
-          displayName: user.displayName,
-          familyId,
-        });
+      if (isIOS()) {
+        await signInWithRedirect(auth, googleProvider);
+        return;
       }
+      const result = await signInWithPopup(auth, googleProvider);
+      await ensureUserDoc(result.user);
     } catch (error) {
       console.error("Google認証エラー:", error);
     }
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen p-4 transition-colors duration-300">
+    <div className="relative flex flex-col items-center justify-center h-full overflow-y-auto p-4 transition-colors duration-300">
       {/* 右上のフローティング・テーマ切替ボタン（ログイン前でも切り替え可能に） */}
       <div className="absolute top-6 right-6">
         <button

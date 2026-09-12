@@ -200,7 +200,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="relative min-h-screen pb-28 transition-colors duration-300 text-slate-800 dark:text-gray-100">
+    <div className="app-shell relative transition-colors duration-300 text-slate-800 dark:text-gray-100">
       {/* Glassmorphism v2: メッシュグラデーション背景 */}
       <div className="mesh-bg">
         <span className="blob-1" />
@@ -209,8 +209,9 @@ const Dashboard = () => {
         <span className="blob-4" />
       </div>
 
-      {/* 簡略化された固定ヘッダー: ブランド + 月/年ナビゲーター + ダークモード切替 */}
-      <header className="sticky top-0 z-30 bg-white/30 dark:bg-black/20 backdrop-blur-xl border-b border-white/40 dark:border-white/10 shadow-md px-4 sm:px-6 pt-[calc(14px+env(safe-area-inset-top,0px))] pb-3.5 space-y-3">
+      {/* 簡略化された固定ヘッダー: ブランド + 月/年ナビゲーター + ダークモード切替
+          app-shellがoverflow:hiddenなので、ここはsticky不要でも常に画面上部に静止する */}
+      <header className="relative z-30 shrink-0 bg-white/30 dark:bg-black/20 backdrop-blur-xl border-b border-white/40 dark:border-white/10 shadow-md px-4 sm:px-6 pt-[calc(14px+env(safe-area-inset-top,0px))] pb-3.5 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-col">
             <span className="text-[9px] font-extrabold tracking-widest text-cyan-800 dark:text-cyan-400 uppercase">
@@ -281,8 +282,8 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* メインコンテンツ (タブ切替) */}
-      <main className="relative z-10 max-w-lg mx-auto px-4 sm:px-6 py-6">
+      {/* メインコンテンツ (タブ切替): アプリシェル内で唯一スクロールする領域 */}
+      <main className="app-shell-scroll relative z-10 max-w-lg w-full mx-auto px-4 sm:px-6 py-6 pb-28">
         {activeTab === "home" && (
           <HomeView
             viewMode={viewMode}

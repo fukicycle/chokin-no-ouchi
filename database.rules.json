@@ -1,0 +1,23 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "budgets": {
+      "$familyId": {
+        ".read": "auth != null && root.child('users').child(auth.uid).child('familyId').val() === $familyId",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('familyId').val() === $familyId"
+      }
+    },
+    "expenses": {
+      "$familyId": {
+        ".read": "auth != null && root.child('users').child(auth.uid).child('familyId').val() === $familyId",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('familyId').val() === $familyId",
+        ".indexOn": ["date"]
+      }
+    }
+  }
+}

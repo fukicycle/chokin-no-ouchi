@@ -7,7 +7,7 @@ function App() {
   const { currentUser } = useAuth();
 
   return (
-    <div className="App">{currentUser ? <Dashboard /> : <LoginScreen />}</div>
+    <div className="App h-full">{currentUser ? <Dashboard /> : <LoginScreen />}</div>
   );
 }
 
