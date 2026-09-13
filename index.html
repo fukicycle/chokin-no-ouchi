@@ -9,13 +9,16 @@
     
     <!-- PWA iOS & Android Theme Settings -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- ステータスバーの下までコンテンツを敷いて地の白を消す。
+         iOS はこの指定のとき WebView をリサイズせず原点だけ y=0 にずらすことがあるため、
+         下端は App.css の body::before (100lvh) で塞ぐ。 -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#f0fdfa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
     
     <title>貯金のおうち - 家族共有家計簿</title>
-    <script type="module" crossorigin src="/chokin-no-ouchi/assets/index-tgsZPW3D.js"></script>
-    <link rel="stylesheet" crossorigin href="/chokin-no-ouchi/assets/index-Dg2P3i_3.css">
+    <script type="module" crossorigin src="/chokin-no-ouchi/assets/index-CNBESX_f.js"></script>
+    <link rel="stylesheet" crossorigin href="/chokin-no-ouchi/assets/index-CxM0WdLZ.css">
   </head>
   <body>
     <div id="root"></div>
