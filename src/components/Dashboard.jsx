@@ -283,7 +283,7 @@ const Dashboard = () => {
       </header>
 
       {/* メインコンテンツ (タブ切替): アプリシェル内で唯一スクロールする領域 */}
-      <main className="app-shell-scroll relative z-10 max-w-lg w-full mx-auto px-4 sm:px-6 py-6 pb-28">
+      <main className="app-shell-scroll relative z-10 max-w-lg w-full mx-auto px-4 sm:px-6 pt-4 pb-28">
         {activeTab === "home" && (
           <HomeView
             viewMode={viewMode}
@@ -325,10 +325,6 @@ const Dashboard = () => {
             familyId={familyId}
             year={currentYear}
             month={currentMonth}
-            onMonthChange={(year, month) => {
-              setCurrentYear(year);
-              setCurrentMonth(month);
-            }}
             viewMode={viewMode}
             initialCategory={initialCategoryFilter}
           />

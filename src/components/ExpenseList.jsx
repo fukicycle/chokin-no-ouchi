@@ -1,9 +1,6 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronLeft,
-  faChevronRight,
-  faTimes,
   faEdit,
   faTrashAlt,
   faFilter,
@@ -14,18 +11,16 @@ import { useAuth } from "../hooks/useAuth";
 import { ref, remove } from "firebase/database";
 import { database } from "../firebase/config";
 import ExpenseForm from "./ExpenseForm";
+import Modal from "./Modal";
 
 const ExpenseList = ({ 
   familyId, 
   year, 
   month, 
-  onMonthChange, 
-  onClose, 
   viewMode = "month",
   initialCategory = "all" 
 }) => {
   const { currentUser } = useAuth();
-  const today = new Date();
 
   // 月次と年次のデータをそれぞれ取得
   const { expenses: monthlyExpenses, loading: monthlyLoading } = useMonthlyExpenses(familyId, year, month);
@@ -49,14 +44,16 @@ const ExpenseList = ({
     setSelectedCategoryFilter(initialCategory);
   }, [initialCategory]);
 
-  const titleText = useMemo(() => {
-    if (viewMode === "month") {
-      const date = new Date(year, month - 1);
-      return date.toLocaleString("ja-JP", { year: "numeric", month: "long" });
-    } else {
-      return `${year}年`;
+  // 表示期間が変わったらカテゴリーフィルターをリセット。
+  // 初回マウント時は initialCategory を上書きしないようスキップする。
+  const isFirstPeriodRender = useRef(true);
+  useEffect(() => {
+    if (isFirstPeriodRender.current) {
+      isFirstPeriodRender.current = false;
+      return;
     }
-  }, [viewMode, year, month]);
+    setSelectedCategoryFilter("all");
+  }, [year, month, viewMode]);
 
   // 現在の支出データ一覧から一意なカテゴリーを抽出
   const activeCategories = useMemo(() => {
@@ -87,36 +84,6 @@ const ExpenseList = ({
   const filteredTotal = useMemo(() => {
     return processedExpenses.reduce((sum, e) => sum + e.amount, 0);
   }, [processedExpenses]);
-
-  const handlePrevious = () => {
-    setSelectedCategoryFilter("all"); // 月・年切り替え時にフィルターをリセット
-    if (viewMode === "month") {
-      const newDate = new Date(year, month - 2);
-      onMonthChange(newDate.getFullYear(), newDate.getMonth() + 1);
-    } else {
-      onMonthChange(year - 1, month);
-    }
-  };
-
-  const handleNext = () => {
-    setSelectedCategoryFilter("all"); // 月・年切り替え時にフィルターをリセット
-    if (viewMode === "month") {
-      const newDate = new Date(year, month);
-      onMonthChange(newDate.getFullYear(), newDate.getMonth() + 1);
-    } else {
-      onMonthChange(year + 1, month);
-    }
-  };
-
-  const isNextDisabled = useMemo(() => {
-    const todayYear = today.getFullYear();
-    const todayMonth = today.getMonth() + 1;
-    if (viewMode === "month") {
-      return year > todayYear || (year === todayYear && month >= todayMonth);
-    } else {
-      return year >= todayYear;
-    }
-  }, [viewMode, year, month]);
 
   const openDetailsModal = (expense) => {
     setSelectedExpense(expense);
@@ -150,28 +117,6 @@ const ExpenseList = ({
 
   return (
     <div className="relative text-slate-800 dark:text-gray-100">
-      {/* ナビゲーター */}
-      <div className="flex justify-between items-center mb-4">
-        <button
-          onClick={handlePrevious}
-          className="p-2 text-cyan-800 dark:text-cyan-400 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors duration-200"
-        >
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </button>
-        <h3 className="text-xl font-bold">{titleText}</h3>
-        <button
-          onClick={handleNext}
-          disabled={isNextDisabled}
-          className={`p-2 text-cyan-800 dark:text-cyan-400 transition-colors duration-200 ${
-            isNextDisabled
-              ? "opacity-20 cursor-not-allowed text-gray-400"
-              : "hover:text-cyan-600 dark:hover:text-cyan-300"
-          }`}
-        >
-          <FontAwesomeIcon icon={faChevronRight} />
-        </button>
-      </div>
-
       {/* カテゴリーフィルタータグ (横スクロールピルバー) */}
       {expenses.length > 0 && (
         <div className="space-y-2 mb-3">
@@ -285,23 +230,10 @@ const ExpenseList = ({
 
       {/* 支出詳細・編集モーダル */}
       {detailsModalOpen && selectedExpense && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-          <div
-            className="glass-modal w-full max-w-md mx-4 p-6 rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 text-text-dark dark:text-gray-100 transform transition-transform duration-300"
-            style={{ animation: `modal-in 0.3s forwards` }}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold">
-                {isEditing ? "支出の編集" : "支出詳細"}
-              </h3>
-              <button
-                onClick={closeDetailsModal}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none transition-colors duration-200"
-              >
-                <FontAwesomeIcon icon={faTimes} className="text-2xl" />
-              </button>
-            </div>
-
+        <Modal
+          onClose={closeDetailsModal}
+          title={isEditing ? "支出の編集" : "支出詳細"}
+        >
             {isEditing ? (
               <ExpenseForm
                 userId={currentUser?.uid}
@@ -357,8 +289,7 @@ const ExpenseList = ({
                 </div>
               </div>
             )}
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );
