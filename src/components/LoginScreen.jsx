@@ -2,12 +2,9 @@ import React, { useState } from "react";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase/config";
 import { ensureUserDoc } from "../firebase/ensureUserDoc";
-import { useTheme } from "../context/ThemeContext";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+import ThemeToggle from "./ThemeToggle";
 
 const LoginScreen = () => {
-  const { theme, toggleTheme } = useTheme();
   const [signInError, setSignInError] = useState(null);
 
   const handleGoogleSignIn = async () => {
@@ -26,13 +23,7 @@ const LoginScreen = () => {
       {/* 右上のフローティング・テーマ切替ボタン（ログイン前でも切り替え可能に）
           ステータスバーの下に潜り込まないようセーフエリアぶん下げる */}
       <div className="absolute right-6 top-[calc(1.5rem+env(safe-area-inset-top,0px))]">
-        <button
-          onClick={toggleTheme}
-          className="w-10 h-10 flex items-center justify-center text-cyan-800 dark:text-cyan-400 bg-white/40 dark:bg-black/25 border border-white/50 dark:border-white/10 rounded-full shadow-md hover:scale-105 active:scale-95 transition-all duration-200"
-          title={theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"}
-        >
-          <FontAwesomeIcon icon={theme === "light" ? faMoon : faSun} className="text-base" />
-        </button>
+        <ThemeToggle />
       </div>
 
       {/* グラスモルフィズムカード（コントラスト・アクセシビリティを強化） */}

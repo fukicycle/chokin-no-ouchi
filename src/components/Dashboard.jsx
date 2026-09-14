@@ -8,7 +8,6 @@ import { useMonthlyExpenses } from "../hooks/useMonthlyExpenses";
 import { useRecentExpenses } from "../hooks/useRecentExpenses";
 import { useAnnualExpenses } from "../hooks/useAnnualExpenses";
 import { useBudget } from "../hooks/useBudget";
-import { useTheme } from "../context/ThemeContext";
 import Modal from "./Modal";
 import ExpenseForm from "./ExpenseForm";
 import ReceiptScanForm from "./ReceiptScanForm";
@@ -17,13 +16,9 @@ import HomeView from "./HomeView";
 import InsightsView from "./InsightsView";
 import HistoryView from "./HistoryView";
 import SettingsView from "./SettingsView";
+import ThemeToggle from "./ThemeToggle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faChevronLeft,
-  faChevronRight,
-  faMoon,
-  faSun,
-} from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("home"); // "home" | "insights" | "history" | "settings"
@@ -34,7 +29,6 @@ const Dashboard = () => {
 
   const { currentUser } = useAuth();
   const { userData, loading: userLoading } = useUserData();
-  const { theme, toggleTheme } = useTheme();
 
   const familyId = !userLoading && userData ? userData.familyId : undefined;
   const today = new Date();
@@ -222,13 +216,7 @@ const Dashboard = () => {
             </h2>
           </div>
 
-          <button
-            onClick={toggleTheme}
-            className="w-10 h-10 flex-shrink-0 flex items-center justify-center text-cyan-800 dark:text-cyan-400 bg-white/50 dark:bg-black/25 border border-cyan-800/20 dark:border-white/10 rounded-full shadow-sm hover:scale-105 active:scale-[0.95] transition-all duration-200"
-            title={theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"}
-          >
-            <FontAwesomeIcon icon={theme === "light" ? faMoon : faSun} className="text-base" />
-          </button>
+          <ThemeToggle />
         </div>
 
         <div className="flex items-center justify-center gap-2">
