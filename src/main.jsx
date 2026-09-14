@@ -3,7 +3,11 @@ import { createRoot } from "react-dom/client";
 import App from "./components/App.jsx";
 import { AuthProvider } from "./components/AuthProvider.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
+import { setupIosViewport } from "./utils/iosViewport.js";
 import "./styles/App.css";
+
+// iOSのstandalone PWAでビューポートが画面より短くなるズレを実測して補正する
+setupIosViewport();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

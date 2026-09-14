@@ -2,32 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* iOSのstandalone PWAで「画面の高さ」と「レイアウトビューポートの高さ」が
+     食い違うぶんの実測値。src/utils/iosViewport.js が実行時に入れる。
+     食い違いが無い環境(Android/PC/Safariタブ/正常なiOS)では常に0px。 */
+  --ios-bottom-shim: 0px;
+}
+
 /* Custom background for light and dark modes */
 html {
   margin: 0;
   padding: 0;
-  height: 100%;
-  /* 一番外側をhiddenにして、ヘッダーの位置をスクロールから切り離して固定する。
-     実際のスクロールはアプリシェル内側の.app-shell-scrollのみが担う。 */
-  overflow: hidden;
+  /* black-translucent のstandaloneでは、WebViewは画面全体に描かれるのに
+     レイアウトビューポートだけがステータスバーぶん短くなることがあり、
+     画面下端に safe-area-inset-top と同じ高さの地の白が残る。
+     文書をその差分ぶん下へ伸ばして塞ぐ(差分0のときは 100% と同じ)。
+     伸ばした部分が切り取られないよう、html/bodyには overflow:hidden を
+     掛けない。実際のスクロールはアプリシェル内側の .app-shell-scroll のみが
+     担い、文書自体ははみ出さないので、これでもページはスクロールしない。 */
+  height: calc(100% + var(--ios-bottom-shim));
   overscroll-behavior: none;
-  /* background-attachment: fixed はここでは不要(htmlはoverflow:hiddenで
-     そもそもスクロールしない)な上、iOSのstandalone PWAでは背景の再描画が
-     画面端(特にsafe-area付近)で欠落し、地の白背景が露出するバグの原因になる
-     ため使用しない。 */
-  background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 50%, #f5f3ff 100%);
+  /* グラデーションに加えて単色も敷く: セーフエリア付近でグラデーションの
+     再描画が欠けても地の白が出ないようにするため。
+     background-attachment: fixed は iOSのstandalone PWAで画面端の再描画が
+     欠落するバグの原因になるため使わない。 */
+  background-color: #f0fdfa;
+  background-image: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 50%, #f5f3ff 100%);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 html.dark {
-  background: linear-gradient(135deg, #0f172a 0%, #111827 50%, #030712 100%);
+  background-color: #0f172a;
+  background-image: linear-gradient(135deg, #0f172a 0%, #111827 50%, #030712 100%);
 }
 
 body {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden;
   overscroll-behavior: none;
   background: transparent; /* htmlのグラデーションを引き継ぐ */
   transition: color 0.3s ease;
@@ -35,6 +47,27 @@ body {
 
 html.dark body {
   color: #f1f5f9;
+}
+
+/* ステータスバーの帯。
+   black-translucent では時計やバッテリーの文字色が常に白になるため、
+   その帯の下にだけ濃色を敷いて可読性を確保する。
+   safe-area-inset-top が 0 の環境(Android/PC/Safariタブ)では高さ0になり、
+   何も描かれない。 */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 60;
+  pointer-events: none;
+  background: #155e75;
+}
+
+html.dark body::before {
+  background: #0f172a;
 }
 
 #root {
@@ -45,8 +78,8 @@ html.dark body {
    静止し、.app-shell-scrollだけが独立してスクロールする。
    iOSのstandalone PWAでは100vh/100dvhがステータスバー/ホームインジケーター
    分の計算タイミングによって間欠的にズレ、下部に地の白背景が露出することが
-   あるため、html/body/#root/.Appで既に確定している height:100% の連鎖を
-   そのまま引き継ぐ（viewport単位の再計算に依存しない）。 */
+   あるため、html(=画面高さ+シム)から height:100% で受け継ぐだけにして
+   viewport単位の再計算には依存しない。 */
 .app-shell {
   height: 100%;
   display: flex;
@@ -62,9 +95,11 @@ html.dark body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Mesh gradient background blobs (Glassmorphism v2 depth layer) */
+/* Mesh gradient background blobs (Glassmorphism v2 depth layer)
+   position:fixed だとレイアウトビューポート(=画面より短いことがある)基準に
+   なってしまうので、シェル基準の absolute にして画面下端まで覆わせる。 */
 .mesh-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
