@@ -49,7 +49,10 @@ const BottomNav = ({ activeTab, onTabChange, onAddClick }) => {
   };
 
   return (
-    <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom,0px)]">
+    // position:fixed はレイアウトビューポート基準になり、iOSのstandalone PWAでは
+    // それが画面より短いことがあるため画面下端に届かない。
+    // .app-shell(縦flex)の最後の要素としてフローに置き、確実に最下部へ置く。
+    <nav className="bottom-nav relative z-40 shrink-0 pb-[env(safe-area-inset-bottom,0px)]">
       <div className="max-w-lg mx-auto relative flex items-stretch h-16 px-2">
         {leftTabs.map(renderTab)}
 

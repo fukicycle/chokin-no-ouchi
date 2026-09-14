@@ -22,9 +22,10 @@ const LoginScreen = () => {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center h-full overflow-y-auto p-4 transition-colors duration-300">
-      {/* 右上のフローティング・テーマ切替ボタン（ログイン前でも切り替え可能に） */}
-      <div className="absolute top-6 right-6">
+    <div className="relative flex flex-col items-center justify-center h-full overflow-y-auto px-4 pt-[max(1rem,calc(env(safe-area-inset-top,0px)+0.5rem))] pb-[max(1rem,env(safe-area-inset-bottom,0px))] transition-colors duration-300">
+      {/* 右上のフローティング・テーマ切替ボタン（ログイン前でも切り替え可能に）
+          ステータスバーの下に潜り込まないようセーフエリアぶん下げる */}
+      <div className="absolute right-6 top-[calc(1.5rem+env(safe-area-inset-top,0px))]">
         <button
           onClick={toggleTheme}
           className="w-10 h-10 flex items-center justify-center text-cyan-800 dark:text-cyan-400 bg-white/40 dark:bg-black/25 border border-white/50 dark:border-white/10 rounded-full shadow-md hover:scale-105 active:scale-95 transition-all duration-200"

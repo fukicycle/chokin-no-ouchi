@@ -27,6 +27,9 @@ const Modal = ({ children, onClose, title, isChildModal = false }) => {
         isClosing ? "opacity-0" : "opacity-100"
       } ${isChildModal ? "" : "bg-gray-900/50 backdrop-blur-sm"}`}
       style={{
+        // レイアウトビューポートが画面より短いiOSのstandalone PWAでも
+        // オーバーレイが画面下端まで届くようにシムぶん高さを足す
+        height: "calc(100% + var(--ios-bottom-shim, 0px))",
         paddingTop: "max(1.5rem, env(safe-area-inset-top, 0px))",
         paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))",
       }}

@@ -8,8 +8,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
     <!-- PWA iOS & Android Theme Settings -->
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- ステータスバーの下までWebViewを敷いて、上端の白帯を消す。
+         (viewport-fit=cover と併用。ステータスバーの文字は常に白になるため、
+          その帯の下だけ濃色を敷く処理を App.css の body::before で行う) -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#f0fdfa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
     
