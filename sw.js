@@ -1,11 +1,28 @@
 const CACHE_NAME = "chokin-no-ouchi-v1";
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    (async () => {
+      // 旧バージョンのキャッシュを残さない (アプリ内「アップデート」で
+      // 確実に新しいアセットが読まれるようにするため)
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      );
+      await self.clients.claim();
+    })()
+  );
+});
+
+// アプリ内のアップデート操作から、待機中の新しいworkerを即時有効化する
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("fetch", (event) => {
@@ -29,7 +46,7 @@ self.addEventListener("push", (event) => {
       title = data.title || title;
       body = data.body || body;
       icon = data.icon || icon;
-    } catch (e) {
+    } catch {
       body = event.data.text() || body;
     }
   }
