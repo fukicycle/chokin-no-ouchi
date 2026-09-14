@@ -4,8 +4,8 @@
   "description": "家族みんなで楽しく共同で支出管理できるグラスモルフィズム家計簿",
   "start_url": "/chokin-no-ouchi/",
   "display": "standalone",
-  "background_color": "#111827",
-  "theme_color": "#111827",
+  "background_color": "#f2fafd",
+  "theme_color": "#f2fafd",
   "orientation": "portrait-primary",
   "icons": [
     {

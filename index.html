@@ -10,16 +10,16 @@
     <!-- PWA iOS & Android Theme Settings -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <!-- ステータスバーの下までWebViewを敷いて、上端の白帯を消す。
-         (viewport-fit=cover と併用。ステータスバーの文字は常に白になるため、
-          その帯の下だけ濃色を敷く処理を App.css の body::before で行う) -->
+    <!-- ステータスバーの下までWebViewを敷いて上端の白帯を消す(viewport-fit=cover と併用)。
+         WebViewがステータスバー下から始まる端末では、OSがその帯を theme-color で塗る。 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#f0fdfa" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
+    <!-- ヘッダー(.app-header)と同じ色。OSの配色ではなくアプリ内のテーマ切替に
+         追従させるため、src/utils/chromeColor.js が実行時に書き換える。 -->
+    <meta name="theme-color" content="#f2fafd" />
     
     <title>貯金のおうち - 家族共有家計簿</title>
-    <script type="module" crossorigin src="/chokin-no-ouchi/assets/index-588PpX-D.js"></script>
-    <link rel="stylesheet" crossorigin href="/chokin-no-ouchi/assets/index-DI1uAvbJ.css">
+    <script type="module" crossorigin src="/chokin-no-ouchi/assets/index-cETa69fr.js"></script>
+    <link rel="stylesheet" crossorigin href="/chokin-no-ouchi/assets/index-CgblcQc4.css">
   </head>
   <body>
     <div id="root"></div>
