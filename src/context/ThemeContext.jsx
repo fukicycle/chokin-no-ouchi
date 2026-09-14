@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { applyChromeColor } from "../utils/chromeColor";
 
 const ThemeContext = createContext();
 
@@ -15,6 +16,8 @@ export const ThemeProvider = ({ children }) => {
       root.classList.remove("dark");
     }
     localStorage.setItem("theme", theme);
+    // iOSがステータスバーの帯を塗る色をヘッダーに合わせる
+    applyChromeColor(theme);
   }, [theme]);
 
   const toggleTheme = () => {

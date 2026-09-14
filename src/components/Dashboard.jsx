@@ -211,7 +211,7 @@ const Dashboard = () => {
 
       {/* 簡略化された固定ヘッダー: ブランド + 月/年ナビゲーター + ダークモード切替
           app-shellがoverflow:hiddenなので、ここはsticky不要でも常に画面上部に静止する */}
-      <header className="relative z-30 shrink-0 bg-white/30 dark:bg-black/20 backdrop-blur-xl border-b border-white/40 dark:border-white/10 shadow-md px-4 sm:px-6 pt-[calc(14px+env(safe-area-inset-top,0px))] pb-3.5 space-y-3">
+      <header className="app-header relative z-30 shrink-0 shadow-md px-4 sm:px-6 pt-[calc(14px+env(safe-area-inset-top,0px))] pb-3.5 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-col">
             <span className="text-[9px] font-extrabold tracking-widest text-cyan-800 dark:text-cyan-400 uppercase">

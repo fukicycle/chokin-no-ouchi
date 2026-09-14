@@ -49,25 +49,22 @@ html.dark body {
   color: #f1f5f9;
 }
 
-/* ステータスバーの帯。
-   black-translucent では時計やバッテリーの文字色が常に白になるため、
-   その帯の下にだけ濃色を敷いて可読性を確保する。
-   safe-area-inset-top が 0 の環境(Android/PC/Safariタブ)では高さ0になり、
-   何も描かれない。 */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: env(safe-area-inset-top, 0px);
-  z-index: 60;
-  pointer-events: none;
-  background: #155e75;
+/* アプリバー(ヘッダー)。
+   iOSのstandalone PWAでは、WebViewがステータスバーの下から始まり、その帯は
+   OSが theme-color で塗る。すりガラスのままだと帯とヘッダーで色が変わって
+   段差に見えるので、ヘッダーは theme-color と同じ単色にする
+   (色は src/utils/chromeColor.js の CHROME_COLORS と一致させること)。
+   WebViewがステータスバーの下まで広がる端末では、ヘッダー自身の
+   padding-top: env(safe-area-inset-top) が同じ色でその帯を塗るので、
+   どちらの挙動でも継ぎ目が出ない。 */
+.app-header {
+  background-color: #f2fafd;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
 }
 
-html.dark body::before {
-  background: #0f172a;
+html.dark .app-header {
+  background-color: #0c1222;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 #root {
