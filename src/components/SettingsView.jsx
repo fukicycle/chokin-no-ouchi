@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useCategories } from "../hooks/useCategories";
 import { useGeminiApiKey } from "../hooks/useGeminiApiKey";
 import { useBudget } from "../hooks/useBudget";
+import AppInfoSection from "./AppInfoSection";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCopy,
@@ -492,6 +493,9 @@ const SettingsView = ({ familyId, onSignOut }) => {
           <span>ログアウト</span>
         </button>
       </section>
+
+      {/* バージョン情報・アップデート・OSSライセンス */}
+      <AppInfoSection />
     </div>
   );
 };

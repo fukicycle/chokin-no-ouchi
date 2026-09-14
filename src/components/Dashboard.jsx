@@ -94,10 +94,6 @@ const Dashboard = () => {
       : annualTotal;
   }, [viewMode, expenses, annualTotal]);
 
-  const recentExpenses = useMemo(() => {
-    return chartExpenses.slice(0, 5);
-  }, [chartExpenses]);
-
   // 比較情報の計算
   const comparisonData = useMemo(() => {
     if (viewMode === "month") {
@@ -176,6 +172,9 @@ const Dashboard = () => {
     }
   }, [viewMode, currentYear, currentMonth]);
 
+  // ホーム/履歴はスクロールしない(履歴は内側のリストのみスクロール)タブ
+  const isFixedHeightTab = activeTab === "home" || activeTab === "history";
+
   const handleSignOut = async () => {
     await signOut(auth);
   };
@@ -205,13 +204,13 @@ const Dashboard = () => {
 
       {/* 簡略化された固定ヘッダー: ブランド + 月/年ナビゲーター + ダークモード切替
           app-shellがoverflow:hiddenなので、ここはsticky不要でも常に画面上部に静止する */}
-      <header className="app-header relative z-30 shrink-0 shadow-md px-4 sm:px-6 pt-[calc(14px+env(safe-area-inset-top,0px))] pb-3.5 space-y-3">
+      <header className="app-header relative z-30 shrink-0 shadow-md px-4 sm:px-6 pt-[calc(14px+env(safe-area-inset-top,0px))] pb-3.5 space-y-3 short:pt-[calc(6px+env(safe-area-inset-top,0px))] short:pb-2 short:space-y-1.5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-col">
             <span className="text-[9px] font-extrabold tracking-widest text-cyan-800 dark:text-cyan-400 uppercase">
               CHOKIN NO OUCHI
             </span>
-            <h2 className="text-base font-black text-slate-800 dark:text-white truncate max-w-[160px] sm:max-w-xs">
+            <h2 className="text-base short:text-sm font-black text-slate-800 dark:text-white truncate max-w-[160px] sm:max-w-xs">
               {userData?.displayName || "メンバー"}さん 👋
             </h2>
           </div>
@@ -270,8 +269,17 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* メインコンテンツ (タブ切替): アプリシェル内で唯一スクロールする領域 */}
-      <main className="app-shell-scroll relative z-10 max-w-lg w-full mx-auto px-4 sm:px-6 pt-4 pb-10">
+      {/* メインコンテンツ (タブ切替)。
+          ホームと履歴は「画面内に収める」タブなので main 自体はスクロールさせず、
+          高さを使い切る箱として渡す (履歴は内側の明細リストだけがスクロールする)。
+          分析・設定は従来どおり main 全体がスクロールする。 */}
+      <main
+        className={`relative z-10 max-w-lg w-full mx-auto px-4 sm:px-6 pt-4 ${
+          isFixedHeightTab
+            ? "app-shell-fixed pb-4 short:pt-2 short:pb-2"
+            : "app-shell-scroll pb-10"
+        }`}
+      >
         {activeTab === "home" && (
           <HomeView
             viewMode={viewMode}
@@ -282,9 +290,7 @@ const Dashboard = () => {
             monthlyBudget={monthlyBudget}
             currentYear={currentYear}
             currentMonth={currentMonth}
-            recentExpenses={recentExpenses}
             onNavigate={setActiveTab}
-            onCategoryClick={goToHistoryWithCategory}
           />
         )}
 

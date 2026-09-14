@@ -112,14 +112,20 @@ const ExpenseList = ({
   };
 
   if (loading) {
-    return <div className="text-center text-gray-500 dark:text-gray-400 py-4">読み込み中...</div>;
+    return (
+      <div className="flex-1 min-h-0 flex items-center justify-center text-gray-500 dark:text-gray-400">
+        読み込み中...
+      </div>
+    );
   }
 
   return (
-    <div className="relative text-slate-800 dark:text-gray-100">
-      {/* カテゴリーフィルタータグ (横スクロールピルバー) */}
+    // 親(HistoryView)の高さを使い切り、フィルター/並べ替えは固定、
+    // 明細リスト(下の flex-1 min-h-0 の領域)だけをスクロールさせる。
+    <div className="relative h-full min-h-0 flex flex-col text-slate-800 dark:text-gray-100">
+      {/* カテゴリーフィルタータグ (横スクロールピルバー) — 固定ヘッダー */}
       {expenses.length > 0 && (
-        <div className="space-y-2 mb-3">
+        <div className="space-y-2 mb-3 shrink-0">
           <div className="flex items-center space-x-1 px-1 text-slate-500 dark:text-slate-400">
             <FontAwesomeIcon icon={faFilter} className="text-xs" />
             <span className="text-[10px] font-extrabold tracking-wider uppercase">フィルター</span>
@@ -192,15 +198,16 @@ const ExpenseList = ({
         </div>
       )}
 
-      {/* 支出データ一覧 */}
+      {/* 支出データ一覧 — ここだけが独立してスクロールする */}
       {processedExpenses.length === 0 ? (
-        <div className="text-center text-gray-500 dark:text-gray-400 py-6">
-          {selectedCategoryFilter === "all" 
+        <div className="flex-1 min-h-0 flex items-center justify-center text-center text-gray-500 dark:text-gray-400 py-6">
+          {selectedCategoryFilter === "all"
             ? (viewMode === "month" ? "まだ支出が記録されていません。" : "今年の支出はまだ記録されていません。")
             : "このカテゴリーの支出データは見つかりませんでした。"}
         </div>
       ) : (
-        <ul className="space-y-3">
+        // ホバー時の scale がはみ出して横スクロールが出ないよう左右に余白を確保する
+        <ul className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain space-y-3 px-1 -mx-1 pb-1">
           {processedExpenses.map((expense) => (
             <li
               key={expense.id}

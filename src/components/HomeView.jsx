@@ -1,10 +1,17 @@
 import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHistory } from "@fortawesome/free-solid-svg-icons";
 import SummaryChart from "./SummaryChart";
 import BudgetGaugeCard from "./BudgetGaugeCard";
-import CategoryRankingCard from "./CategoryRankingCard";
 
+/**
+ * ホームは「家計サマリーだけを、どの端末でもスクロールなしで見られる画面」。
+ *
+ * 親から渡された高さ(h-full)をそのまま使い切り、内部では円グラフだけが
+ * flex-1 で余りを吸収する。カテゴリー内訳や直近の支出など高さが可変になる
+ * 要素はここには置かず、分析タブ・履歴タブに任せる。
+ *
+ * 画面が低い端末(横向きスマホなど)では縦積みだと円グラフが潰れてしまうため、
+ * short ブレークポイント(高さ620px以下)で金額ブロックと円グラフを横並びにする。
+ */
 const HomeView = ({
   viewMode,
   chartExpenses,
@@ -14,119 +21,57 @@ const HomeView = ({
   monthlyBudget,
   currentYear,
   currentMonth,
-  recentExpenses,
   onNavigate,
-  onCategoryClick,
 }) => {
   const isLoading = expensesLoading || (viewMode === "year" && annualLoading);
 
   return (
-    <div className="space-y-6">
-      {/* サマリー + 予算ゲージ */}
-      <section className="glass-card glass-card-interactive rounded-3xl p-6 relative overflow-hidden">
-        <div className="flex justify-between items-center mb-6">
-          <h4 className="text-sm font-bold tracking-wide text-slate-500 dark:text-slate-400 uppercase">
-            家計サマリー ({viewMode === "month" ? "月次" : "年次"})
-          </h4>
-        </div>
-
-        {isLoading ? (
-          <div className="text-center text-slate-500 dark:text-slate-400 py-16">データを集計中...</div>
-        ) : (
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className="flex-1">
-              <SummaryChart expenses={chartExpenses} viewMode={viewMode} />
+    <div className="h-full min-h-0 flex flex-col">
+      <section className="glass-card rounded-3xl p-4 sm:p-5 short:p-3 flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col wide-short:flex-row wide-short:items-center wide-short:gap-3">
+          {/* 合計金額 + 予算ゲージ */}
+          <div className="shrink-0 flex items-center justify-between gap-3 wide-short:flex-col wide-short:items-start wide-short:justify-center wide-short:gap-1">
+            <div className="flex flex-col min-w-0">
+              <h4 className="text-[10px] font-bold tracking-wide text-slate-500 dark:text-slate-400 uppercase">
+                家計サマリー ({viewMode === "month" ? "月次" : "年次"})
+              </h4>
+              <span className="text-3xl sm:text-4xl short:text-2xl font-black tracking-tight bg-gradient-to-r from-cyan-600 to-pink-600 dark:from-cyan-400 dark:to-pink-400 bg-clip-text text-transparent">
+                ¥{displayTotal.toLocaleString()}
+              </span>
+              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider very-short:hidden">
+                {viewMode === "month" ? "今月の合計支出" : "今年の合計支出"}
+              </span>
             </div>
-            <div className="flex-1 flex justify-center border-t border-white/30 dark:border-white/5 pt-6 md:border-t-0 md:pt-0 md:border-l md:pl-6">
-              <BudgetGaugeCard
-                monthlyBudget={monthlyBudget}
-                currentTotal={displayTotal}
-                viewMode={viewMode}
-                year={currentYear}
-                month={currentMonth}
-                onGoToSettings={() => onNavigate("settings")}
-                compact
-              />
-            </div>
-          </div>
-        )}
-      </section>
 
-      {/* 上位カテゴリー (構成比) */}
-      <section className="glass-card glass-card-interactive rounded-3xl p-6">
-        {isLoading ? (
-          <div className="text-center text-slate-500 dark:text-slate-400 py-10">集計中...</div>
-        ) : (
-          <>
-            <CategoryRankingCard
-              expenses={chartExpenses}
+            <BudgetGaugeCard
+              monthlyBudget={monthlyBudget}
+              currentTotal={displayTotal}
               viewMode={viewMode}
-              limit={3}
-              onCategoryClick={onCategoryClick}
+              year={currentYear}
+              month={currentMonth}
+              onGoToSettings={() => onNavigate("settings")}
+              mini
             />
-            <button
-              onClick={() => onNavigate("insights")}
-              className="mt-4 w-full text-center text-xs font-black text-cyan-800 dark:text-cyan-400 hover:text-cyan-600 dark:hover:text-cyan-300 hover:underline"
-            >
-              分析タブでもっと詳しく見る
-            </button>
-          </>
-        )}
-      </section>
-
-      {/* 直近の支出プレビュー */}
-      <section className="glass-card glass-card-interactive rounded-3xl p-6">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faHistory} className="text-cyan-800 dark:text-cyan-400" />
-            <h4 className="text-sm font-bold tracking-wide text-slate-500 dark:text-slate-400 uppercase">
-              直近の支出 ({viewMode === "month" ? "今月" : "今年"})
-            </h4>
           </div>
-          {chartExpenses.length > 5 && (
-            <button
-              onClick={() => onNavigate("history")}
-              className="text-xs font-bold text-cyan-800 dark:text-cyan-400 hover:text-cyan-600 dark:hover:text-cyan-300 hover:underline"
-            >
-              すべて表示 ({chartExpenses.length}件)
-            </button>
+
+          {/* 円グラフ + 凡例 (余った高さをすべて使う) */}
+          {isLoading ? (
+            <div className="flex-1 min-h-0 flex items-center justify-center text-slate-500 dark:text-slate-400">
+              データを集計中...
+            </div>
+          ) : (
+            <div className="flex-1 min-h-0 wide-short:h-full">
+              <SummaryChart expenses={chartExpenses} />
+            </div>
           )}
         </div>
 
-        {isLoading ? (
-          <div className="text-center text-slate-500 dark:text-slate-400 py-8">読み込み中...</div>
-        ) : recentExpenses.length === 0 ? (
-          <div className="text-center text-sm text-slate-500 dark:text-slate-400 py-8">
-            {viewMode === "month" ? "今月の支出はまだありません。" : "今年の支出はまだありません。"}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {recentExpenses.map((expense) => (
-              <div
-                key={expense.id}
-                onClick={() => onNavigate("history")}
-                className="p-3.5 flex justify-between items-center bg-white/20 dark:bg-black/15 border border-white/30 dark:border-white/5 rounded-2xl cursor-pointer hover:bg-white/35 dark:hover:bg-black/25 transition-all duration-200"
-              >
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
-                    {new Date(expense.date).toLocaleDateString("ja-JP")}
-                  </span>
-                  <span className="text-sm font-bold text-slate-800 dark:text-white">
-                    {expense.category}
-                  </span>
-                  {expense.description && (
-                    <span className="text-xs text-slate-600 dark:text-slate-300 truncate max-w-[200px] sm:max-w-md">
-                      {expense.description}
-                    </span>
-                  )}
-                </div>
-                <span className="text-base font-extrabold text-pink-600 dark:text-pink-400">
-                  ¥{expense.amount.toLocaleString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        <button
+          onClick={() => onNavigate("insights")}
+          className="mt-2 shrink-0 w-full text-center text-xs font-black text-cyan-800 dark:text-cyan-400 hover:text-cyan-600 dark:hover:text-cyan-300 hover:underline very-short:hidden"
+        >
+          分析タブでもっと詳しく見る
+        </button>
       </section>
     </div>
   );
