@@ -11,6 +11,9 @@ const BudgetGaugeCard = ({
   month,
   onGoToSettings,
   compact = false,
+  // ホームの1画面レイアウト用。ゲージだけを小さく出し、未設定時も
+  // 高さを食わない1行のボタンに切り替える。
+  mini = false,
 }) => {
   const today = new Date();
 
@@ -62,6 +65,23 @@ const BudgetGaugeCard = ({
   ];
 
   if (!periodBudget) {
+    if (mini) {
+      return (
+        <button
+          onClick={onGoToSettings}
+          className="flex flex-col items-center justify-center w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl border border-dashed border-slate-400/50 dark:border-slate-500/40 text-slate-500 dark:text-slate-400 hover:border-cyan-700/60 hover:text-cyan-800 dark:hover:text-cyan-400 transition-colors active:scale-95"
+          title="設定で月間予算を入力する"
+        >
+          <FontAwesomeIcon icon={faGaugeHigh} className="text-lg" />
+          <span className="mt-1 text-[9px] font-extrabold leading-tight text-center">
+            予算
+            <br />
+            未設定
+          </span>
+        </button>
+      );
+    }
+
     return (
       <div className="w-full text-center py-6 space-y-3">
         <FontAwesomeIcon icon={faGaugeHigh} className="text-3xl text-slate-400 dark:text-slate-500" />
@@ -83,17 +103,19 @@ const BudgetGaugeCard = ({
     );
   }
 
+  const gaugeSize = mini ? 80 : compact ? 128 : 176;
+
   return (
-    <div className="w-full flex flex-col items-center">
-      <div className={`relative ${compact ? "w-32 h-32" : "w-44 h-44"}`}>
+    <div className={`flex flex-col items-center ${mini ? "" : "w-full"}`}>
+      <div className="relative" style={{ width: gaugeSize, height: gaugeSize }}>
         <RadialBarChart
-          width={compact ? 128 : 176}
-          height={compact ? 128 : 176}
+          width={gaugeSize}
+          height={gaugeSize}
           cx="50%"
           cy="50%"
           innerRadius="72%"
           outerRadius="100%"
-          barSize={compact ? 10 : 14}
+          barSize={mini ? 8 : compact ? 10 : 14}
           data={gaugeData}
           startAngle={90}
           endAngle={-270}
@@ -103,18 +125,22 @@ const BudgetGaugeCard = ({
         </RadialBarChart>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className={`${compact ? "text-xl" : "text-3xl"} font-black tracking-tight`}
+            className={`${mini ? "text-sm" : compact ? "text-xl" : "text-3xl"} font-black tracking-tight`}
             style={{ color: gaugeColor }}
           >
             {consumptionRate === null ? "--" : `${Math.round(consumptionRate)}%`}
           </span>
-          <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            予算消化率
+          <span
+            className={`${
+              mini ? "text-[8px]" : "text-[9px]"
+            } font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider`}
+          >
+            {mini ? "消化率" : "予算消化率"}
           </span>
         </div>
       </div>
 
-      {!compact && (
+      {!compact && !mini && (
         <div className="w-full mt-5 space-y-2.5">
           <div className="flex items-center justify-between px-3.5 py-2.5 bg-white/30 dark:bg-black/20 border border-white/40 dark:border-white/5 rounded-2xl shadow-inner">
             <div className="flex items-center space-x-2">

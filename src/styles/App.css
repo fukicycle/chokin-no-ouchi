@@ -92,6 +92,23 @@ html.dark .app-header {
   -webkit-overflow-scrolling: touch;
 }
 
+/* ヘッダーとボトムナビの間の残り高さを「ちょうど使い切る」箱。
+   ホーム(家計サマリー1画面)と履歴(明細リストだけが内側でスクロール)で使う。
+   min-height:0 が無いと flex アイテムは中身の高さより縮まないため、
+   中身があふれたときに画面全体が押し出されてしまう。 */
+.app-shell-fixed {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell-fixed > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 /* Mesh gradient background blobs (Glassmorphism v2 depth layer)
    position:fixed だとレイアウトビューポート(=画面より短いことがある)基準に
    なってしまうので、シェル基準の absolute にして画面下端まで覆わせる。 */
