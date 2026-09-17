@@ -18,8 +18,223 @@
     <meta name="theme-color" content="#f2fafd" />
     
     <title>貯金のおうち - 家族共有家計簿</title>
+
+    <script>
+      // ダークテーマのちらつき防止。
+      // Reactのマウント(=ThemeProvider)を待つとスプラッシュが一瞬ライト配色で
+      // 描かれてしまうため、最初の描画前に localStorage の設定を反映しておく。
+      // 値は src/context/ThemeContext.jsx / src/utils/chromeColor.js と揃えること。
+      (function () {
+        try {
+          if (localStorage.getItem("theme") === "dark") {
+            document.documentElement.classList.add("dark");
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute("content", "#0c1222");
+          }
+        } catch (e) {
+          /* プライベートモード等で localStorage が使えない場合はライトのまま */
+        }
+      })();
+    </script>
+
+    <!-- スプラッシュのスタイルはインラインで持つ。
+         JS/CSSバンドルの読み込みを待たずに最初のフレームから表示させるため。
+         背景色は src/styles/App.css の html / html.dark と揃えること。 -->
+    <style>
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        background-color: #f0fdfa;
+        background-image: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 50%, #f5f3ff 100%);
+        opacity: 1;
+        transform: scale(1);
+        transition: opacity 0.45s ease, transform 0.45s ease;
+        will-change: opacity, transform;
+      }
+
+      html.dark #splash {
+        background-color: #0f172a;
+        background-image: linear-gradient(135deg, #0f172a 0%, #111827 50%, #030712 100%);
+      }
+
+      /* 閉じるとき: わずかに拡大しながらフェードアウトし、
+         同時に現れるアプリ本体(.app-enter)とクロスフェードする */
+      #splash.is-hiding {
+        opacity: 0;
+        transform: scale(1.08);
+        pointer-events: none;
+      }
+
+      #splash .splash-logo {
+        width: 112px;
+        height: 112px;
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.35);
+        animation:
+          splash-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both,
+          splash-float 3s 0.7s ease-in-out infinite;
+      }
+
+      #splash .splash-logo svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      #splash .splash-title {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: #1e293b;
+        animation: splash-rise 0.6s 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      html.dark #splash .splash-title {
+        color: #e2e8f0;
+      }
+
+      #splash .splash-dots {
+        display: flex;
+        gap: 0.4rem;
+        animation: splash-rise 0.6s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      #splash .splash-dots span {
+        width: 7px;
+        height: 7px;
+        border-radius: 9999px;
+        background-color: #06b6d4;
+        animation: splash-blink 1.2s ease-in-out infinite;
+      }
+
+      html.dark #splash .splash-dots span {
+        background-color: #22d3ee;
+      }
+
+      #splash .splash-dots span:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+
+      #splash .splash-dots span:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+
+      @keyframes splash-pop {
+        from {
+          opacity: 0;
+          transform: scale(0.72);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes splash-float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+
+      @keyframes splash-rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @keyframes splash-blink {
+        0%,
+        100% {
+          opacity: 0.25;
+          transform: scale(0.85);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #splash .splash-logo,
+        #splash .splash-title,
+        #splash .splash-dots {
+          animation: none;
+        }
+        #splash .splash-dots span {
+          animation: splash-blink 1.2s ease-in-out infinite;
+        }
+        #splash.is-hiding {
+          transform: none;
+        }
+      }
+    </style>
   </head>
   <body>
+    <!-- スプラッシュ本体。アイコンは public/icon.svg と同じ絵柄をインライン展開して
+         いる(別ファイル取得を待つと初回描画で一瞬空白になるため)。
+         絵柄を変えるときは public/icon.svg と一緒に更新すること。
+         非表示・DOMからの削除は src/utils/splash.js が行う。 -->
+    <div id="splash" role="status" aria-label="読み込み中">
+      <div class="splash-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true">
+          <defs>
+            <linearGradient id="splashIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#06b6d4" />
+              <stop offset="50%" stop-color="#3b82f6" />
+              <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+          </defs>
+          <rect width="512" height="512" rx="128" fill="url(#splashIconGradient)" />
+          <path d="M156 384 V240 L256 144 L356 240 V384 Z" fill="#ffffff" />
+          <path
+            d="M120 250 L256 114 L392 250"
+            stroke="#ffffff"
+            stroke-width="24"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            fill="none"
+          />
+          <rect x="236" y="200" width="40" height="12" rx="6" fill="#0f172a" opacity="0.8" />
+          <circle cx="256" cy="300" r="32" fill="#fbbf24" />
+          <text
+            x="256"
+            y="309"
+            font-family="system-ui, sans-serif"
+            font-size="28"
+            font-weight="900"
+            fill="#ffffff"
+            text-anchor="middle"
+          >
+            ¥
+          </text>
+        </svg>
+      </div>
+      <p class="splash-title">貯金のおうち</p>
+      <div class="splash-dots" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
