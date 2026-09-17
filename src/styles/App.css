@@ -310,3 +310,39 @@ input[type="date"] {
     opacity: 1;
   }
 }
+
+/* スプラッシュからアプリ本体への入場アニメーション。
+   index.html の #splash.is-hiding のフェードアウトと同時に走らせて
+   クロスフェードさせる。
+   fill-mode を付けない(=終了後は transform を残さない)のは、
+   祖先に transform が残るとモーダル等の position:fixed の基準が
+   ずれてしまうため。 */
+@keyframes app-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes app-enter-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.app-enter {
+  animation: app-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-enter {
+    animation: app-enter-fade 0.25s ease-out;
+  }
+}
