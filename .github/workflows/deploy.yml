@@ -15,7 +15,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          # Vite 7 は Node.js 20.19+ / 22.12+ が必要 (それ未満だと
+          # index.html のインライン<script>/<style>のハッシュ計算で使う
+          # crypto.hash が無く、ビルドが失敗する)。
+          node-version: '22'
 
       - name: Install dependencies
         run: npm ci
