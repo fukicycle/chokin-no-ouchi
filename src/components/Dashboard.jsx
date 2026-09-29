@@ -8,6 +8,8 @@ import { useMonthlyExpenses } from "../hooks/useMonthlyExpenses";
 import { useRecentExpenses } from "../hooks/useRecentExpenses";
 import { useAnnualExpenses } from "../hooks/useAnnualExpenses";
 import { useBudget } from "../hooks/useBudget";
+import { useFixedCostSync } from "../hooks/useFixedCostSync";
+import { useExpensesInRange } from "../hooks/useExpensesInRange";
 import Modal from "./Modal";
 import ExpenseForm from "./ExpenseForm";
 import ReceiptScanForm from "./ReceiptScanForm";
@@ -36,6 +38,9 @@ const Dashboard = () => {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
   const { monthlyBudget } = useBudget(familyId);
+
+  // 登録済みの固定費を今月の支出として自動計上する
+  useFixedCostSync(familyId, currentUser?.uid);
 
   // 今月の支出データ取得
   const { expenses, loading: expensesLoading } = useMonthlyExpenses(
@@ -68,6 +73,20 @@ const Dashboard = () => {
     annualTotal: prevYearTotal,
     loading: prevYearLoading,
   } = useAnnualExpenses(familyId, currentYear - 1);
+
+  // 選択月の前6ヶ月分の支出 (過去平均との比較用、月次のみ)
+  const { pastStart, pastEnd } = useMemo(
+    () => ({
+      pastStart: new Date(currentYear, currentMonth - 7, 1),
+      pastEnd: new Date(currentYear, currentMonth - 1, 0, 23, 59, 59, 999),
+    }),
+    [currentYear, currentMonth]
+  );
+  const { expenses: pastSixMonthExpenses, loading: pastSixMonthLoading } = useExpensesInRange(
+    familyId,
+    pastStart,
+    pastEnd
+  );
 
   // 直近3ヶ月の推移データ取得 (月次用)
   const { data: trendData } = useRecentExpenses(familyId, 3);
@@ -119,15 +138,17 @@ const Dashboard = () => {
 
   // 12ヶ月の推移データの集計 (年次用)
   const yearlyTrendData = useMemo(() => {
+    // まだ来ていない月は null にして、折れ線が 0 まで落ちないようにする
+    const now = new Date();
     const months = Array.from({ length: 12 }, (_, i) => ({
       month: `${currentYear}-${String(i + 1).padStart(2, "0")}`,
-      total: 0,
+      total: new Date(currentYear, i, 1) > now ? null : 0,
     }));
 
     annualExpenses.forEach((exp) => {
       const expDate = new Date(exp.date);
       const m = expDate.getMonth(); // 0 to 11
-      months[m].total += exp.amount || 0;
+      months[m].total = (months[m].total || 0) + (exp.amount || 0);
     });
 
     return months;
@@ -309,6 +330,8 @@ const Dashboard = () => {
             chartExpenses={chartExpenses}
             previousExpenses={previousPeriodExpenses}
             activeTrendData={activeTrendData}
+            pastSixMonthExpenses={pastSixMonthExpenses}
+            pastSixMonthLoading={pastSixMonthLoading || expensesLoading}
             onGoToSettings={() => setActiveTab("settings")}
             onCategoryClick={goToHistoryWithCategory}
           />

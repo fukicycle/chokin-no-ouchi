@@ -9,6 +9,7 @@ import { useGeminiModel } from "../hooks/useGeminiModel";
 import { DEFAULT_GEMINI_MODEL, GEMINI_MODELS, getModelFallbackOrder } from "../services/geminiReceipt";
 import { useBudget } from "../hooks/useBudget";
 import AppInfoSection from "./AppInfoSection";
+import FixedCostSettings from "./FixedCostSettings";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCopy,
@@ -235,6 +236,14 @@ const SettingsView = ({ familyId, onSignOut }) => {
         });
 
         if (count > 0) {
+          // 固定費のテンプレートも同じカテゴリーに揃え、来月以降の自動計上で元のカテゴリーが復活しないようにする
+          const fixedCostsSnapshot = await get(ref(database, `fixedCosts/${familyId}`));
+          Object.entries(fixedCostsSnapshot.val() || {}).forEach(([key, fixedCost]) => {
+            if (fixedCost.category === oldCategory) {
+              updates[`fixedCosts/${familyId}/${key}/category`] = cleanNewCategory;
+            }
+          });
+
           await update(ref(database), updates);
           alert(`${count}件 of 支出カテゴリーを「${oldCategory}」から「${cleanNewCategory}」へ一括統合しました！`);
           setOldCategory("");
@@ -285,6 +294,11 @@ const SettingsView = ({ familyId, onSignOut }) => {
             </button>
           </div>
         </form>
+
+        <div className="border-t border-white/30 dark:border-white/5" />
+
+        {/* 0.5 毎月の固定費 */}
+        <FixedCostSettings familyId={familyId} categories={categories} />
 
         <div className="border-t border-white/30 dark:border-white/5" />
 

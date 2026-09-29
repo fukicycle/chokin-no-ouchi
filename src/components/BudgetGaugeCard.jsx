@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPiggyBank, faGaugeHigh, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { faPiggyBank, faGaugeHigh, faTriangleExclamation, faCalendarDay } from "@fortawesome/free-solid-svg-icons";
+import { projectMonthTotal } from "../utils/analytics";
 
 const BudgetGaugeCard = ({
   monthlyBudget,
@@ -10,6 +11,9 @@ const BudgetGaugeCard = ({
   year,
   month,
   onGoToSettings,
+  // 期間内に計上済みの固定費。固定費は月初にまとめて計上されるため、
+  // 日割りペースで引き伸ばさず着地予測にそのまま足す。
+  fixedTotal = 0,
   compact = false,
   // ホームの1画面レイアウト用。ゲージだけを小さく出し、未設定時も
   // 高さを食わない1行のボタンに切り替える。
@@ -33,11 +37,8 @@ const BudgetGaugeCard = ({
     if (!periodBudget) return null;
 
     if (viewMode === "month") {
-      const isCurrentMonth = year === today.getFullYear() && month === today.getMonth() + 1;
-      const daysInMonth = new Date(year, month, 0).getDate();
-      const daysElapsed = isCurrentMonth ? today.getDate() : daysInMonth;
-      if (!isCurrentMonth || daysElapsed >= daysInMonth) return null;
-      const projected = (currentTotal / daysElapsed) * daysInMonth;
+      const projected = projectMonthTotal(currentTotal, fixedTotal, year, month, today);
+      if (projected === null) return null;
       return { projected, rate: (projected / periodBudget) * 100 };
     } else {
       const isCurrentYear = year === today.getFullYear();
@@ -46,6 +47,16 @@ const BudgetGaugeCard = ({
       const projected = (currentTotal / monthsElapsed) * 12;
       return { projected, rate: (projected / periodBudget) * 100 };
     }
+  }, [periodBudget, currentTotal, fixedTotal, viewMode, year, month]);
+
+  // 今月の残り日数(今日を含む)で予算内に収めるための1日あたりの上限
+  const dailyAllowance = useMemo(() => {
+    if (!periodBudget || viewMode !== "month") return null;
+    const isCurrentMonth = year === today.getFullYear() && month === today.getMonth() + 1;
+    if (!isCurrentMonth) return null;
+    const remainingDays = new Date(year, month, 0).getDate() - today.getDate() + 1;
+    const remaining = periodBudget - currentTotal;
+    return { remainingDays, remaining, perDay: remaining > 0 ? remaining / remainingDays : 0 };
   }, [periodBudget, currentTotal, viewMode, year, month]);
 
   const gaugeColor = consumptionRate === null
@@ -157,6 +168,29 @@ const BudgetGaugeCard = ({
               {overRate > 0 ? `+${Math.round(overRate)}%` : `${Math.round(savingsRate)}%`}
             </span>
           </div>
+
+          {dailyAllowance && (
+            <div className="flex items-start justify-between px-3.5 py-2.5 bg-white/30 dark:bg-black/20 border border-white/40 dark:border-white/5 rounded-2xl shadow-inner">
+              <div className="flex items-center space-x-2">
+                <FontAwesomeIcon icon={faCalendarDay} className="text-cyan-700 dark:text-cyan-400" />
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300">1日あたり使える額</span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span
+                  className={`text-sm font-black ${
+                    dailyAllowance.remaining > 0 ? "text-slate-800 dark:text-white" : "text-rose-600 dark:text-rose-400"
+                  }`}
+                >
+                  ¥{Math.floor(dailyAllowance.perDay).toLocaleString()}
+                </span>
+                <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400">
+                  {dailyAllowance.remaining > 0
+                    ? `残り${dailyAllowance.remainingDays}日 / ¥${dailyAllowance.remaining.toLocaleString()}`
+                    : "予算を使い切りました"}
+                </span>
+              </div>
+            </div>
+          )}
 
           {pace && (
             <div className="flex items-start justify-between px-3.5 py-2.5 bg-white/30 dark:bg-black/20 border border-white/40 dark:border-white/5 rounded-2xl shadow-inner">
