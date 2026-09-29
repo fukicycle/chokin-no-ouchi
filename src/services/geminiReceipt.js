@@ -1,5 +1,10 @@
-// 先頭がデフォルト。無料枠では混雑時に503が返ることがあるため、順に次のモデルへフォールバックする
+// 無料枠では混雑時に503が返ることがあるため、選択したモデルの後はこの順に次のモデルへフォールバックする
 export const GEMINI_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash"];
+export const DEFAULT_GEMINI_MODEL = GEMINI_MODELS[0];
+
+// 選択したモデルを先頭に、残りを一覧の順に並べたフォールバック順
+export const getModelFallbackOrder = (model) =>
+  GEMINI_MODELS.includes(model) ? [model, ...GEMINI_MODELS.filter((m) => m !== model)] : GEMINI_MODELS;
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 const RECEIPT_SCHEMA = {
@@ -57,7 +62,7 @@ export const waitBetweenRequests = (ms = 5500) => sleep(ms);
 export const extractReceiptData = async (
   apiKey,
   imageFile,
-  { categories = [], maxRetries = 4, onStatus = () => {} } = {}
+  { categories = [], maxRetries = 4, model: preferredModel = DEFAULT_GEMINI_MODEL, onStatus = () => {} } = {}
 ) => {
   if (!apiKey) {
     throw new Error("Gemini APIキーが設定されていません。設定画面から登録してください。");
@@ -96,10 +101,11 @@ export const extractReceiptData = async (
     },
   };
 
-  for (let modelIndex = 0; modelIndex < GEMINI_MODELS.length; modelIndex++) {
-    const model = GEMINI_MODELS[modelIndex];
-    const nextModel = GEMINI_MODELS[modelIndex + 1];
-    onStatus({ type: "trying", model, modelIndex, modelCount: GEMINI_MODELS.length });
+  const models = getModelFallbackOrder(preferredModel);
+  for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
+    const model = models[modelIndex];
+    const nextModel = models[modelIndex + 1];
+    onStatus({ type: "trying", model, modelIndex, modelCount: models.length });
 
     let attempt = 0;
     let response;
@@ -127,7 +133,7 @@ export const extractReceiptData = async (
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
-      const triedNote = modelIndex > 0 ? `\n試行したモデル: ${GEMINI_MODELS.slice(0, modelIndex + 1).join(" → ")}` : "";
+      const triedNote = modelIndex > 0 ? `\n試行したモデル: ${models.slice(0, modelIndex + 1).join(" → ")}` : "";
       throw new Error(`Gemini APIエラー (${response.status} / ${model}): ${errorText || response.statusText}${triedNote}`);
     }
 

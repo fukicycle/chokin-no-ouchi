@@ -3,7 +3,8 @@ import { ref, push } from "firebase/database";
 import { database } from "../firebase/config";
 import { useCategories } from "../hooks/useCategories";
 import { useGeminiApiKey } from "../hooks/useGeminiApiKey";
-import { GEMINI_MODELS, extractReceiptData, waitBetweenRequests } from "../services/geminiReceipt";
+import { useGeminiModel } from "../hooks/useGeminiModel";
+import { extractReceiptData, waitBetweenRequests } from "../services/geminiReceipt";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCamera,
@@ -19,6 +20,7 @@ const nextId = () => `receipt-${Date.now()}-${itemIdCounter++}`;
 const ReceiptScanForm = ({ userId, familyId, onClose }) => {
   const { categories } = useCategories(familyId);
   const { apiKey } = useGeminiApiKey();
+  const { model: preferredModel } = useGeminiModel();
   const [items, setItems] = useState([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [isSavingAll, setIsSavingAll] = useState(false);
@@ -36,6 +38,7 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
       try {
         const { data: result, model } = await extractReceiptData(apiKey, item.file, {
           categories,
+          model: preferredModel,
           onStatus: (event) => {
             if (event.type === "trying") {
               updateItem(item.id, { model: event.model });
@@ -53,6 +56,7 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
         updateItem(item.id, {
           status: "done",
           model,
+          isFallback: model !== preferredModel,
           progressNote: null,
           data: {
             date: result.date || new Date().toISOString().slice(0, 10),
@@ -226,7 +230,7 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
                       {item.model && (
                         <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 break-all">
                           モデル: {item.model}
-                          {item.model !== GEMINI_MODELS[0] && "（フォールバック）"}
+                          {item.isFallback && "（フォールバック）"}
                         </span>
                       )}
                     </div>

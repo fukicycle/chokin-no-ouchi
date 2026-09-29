@@ -5,6 +5,8 @@ import { database } from "../firebase/config";
 import { useAuth } from "../hooks/useAuth";
 import { useCategories } from "../hooks/useCategories";
 import { useGeminiApiKey } from "../hooks/useGeminiApiKey";
+import { useGeminiModel } from "../hooks/useGeminiModel";
+import { DEFAULT_GEMINI_MODEL, GEMINI_MODELS, getModelFallbackOrder } from "../services/geminiReceipt";
 import { useBudget } from "../hooks/useBudget";
 import AppInfoSection from "./AppInfoSection";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -40,6 +42,7 @@ const SettingsView = ({ familyId, onSignOut }) => {
   const { apiKey, setApiKey } = useGeminiApiKey();
   const [apiKeyInput, setApiKeyInput] = useState(apiKey);
   const [showApiKey, setShowApiKey] = useState(false);
+  const { model: geminiModel, setModel: setGeminiModel } = useGeminiModel();
 
   // 月間予算
   const { monthlyBudget, saveBudget } = useBudget(familyId);
@@ -373,6 +376,28 @@ const SettingsView = ({ familyId, onSignOut }) => {
               保存する
             </button>
           </form>
+
+          <div className="space-y-1.5">
+            <label htmlFor="gemini-model-select" className="block text-xs font-bold">
+              使用するモデル
+            </label>
+            <select
+              id="gemini-model-select"
+              value={geminiModel}
+              onChange={(e) => setGeminiModel(e.target.value)}
+              className="w-full p-3 bg-white/20 dark:bg-black/30 border border-white/40 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-800 dark:focus:ring-cyan-400 focus:border-transparent dark:text-white text-base"
+            >
+              {GEMINI_MODELS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                  {m === DEFAULT_GEMINI_MODEL ? "（デフォルト）" : ""}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed break-words">
+              混雑 (503) 時は次の順に自動で切り替えます: {getModelFallbackOrder(geminiModel).join(" → ")}
+            </p>
+          </div>
         </div>
 
         <div className="border-t border-white/30 dark:border-white/5" />
