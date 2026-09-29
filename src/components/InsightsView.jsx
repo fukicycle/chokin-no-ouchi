@@ -5,6 +5,9 @@ import CategoryRankingCard from "./CategoryRankingCard";
 import CategoryMoversCard from "./CategoryMoversCard";
 import SpendingTrendCard from "./SpendingTrendCard";
 import FixedVariableCard from "./FixedVariableCard";
+import AverageComparisonCard from "./AverageComparisonCard";
+import SpendingPatternCard from "./SpendingPatternCard";
+import { sumFixed } from "../utils/analytics";
 
 const InsightsView = ({
   viewMode,
@@ -20,14 +23,13 @@ const InsightsView = ({
   chartExpenses,
   previousExpenses,
   activeTrendData,
+  pastSixMonthExpenses,
+  pastSixMonthLoading,
   onGoToSettings,
   onCategoryClick,
 }) => {
   // 月末着地予測で固定費を日割りペースに含めないために使う
-  const fixedTotal = useMemo(
-    () => chartExpenses.reduce((sum, e) => sum + (e.isFixed ? e.amount || 0 : 0), 0),
-    [chartExpenses]
-  );
+  const fixedTotal = useMemo(() => sumFixed(chartExpenses), [chartExpenses]);
 
   return (
     <div className="space-y-6">
@@ -60,6 +62,18 @@ const InsightsView = ({
         />
       </section>
 
+      {viewMode === "month" && (
+        <section className="glass-card glass-card-interactive rounded-3xl p-6">
+          <AverageComparisonCard
+            currentExpenses={chartExpenses}
+            pastExpenses={pastSixMonthExpenses}
+            year={currentYear}
+            month={currentMonth}
+            loading={pastSixMonthLoading}
+          />
+        </section>
+      )}
+
       <section className="glass-card glass-card-interactive rounded-3xl p-6">
         <FixedVariableCard expenses={chartExpenses} viewMode={viewMode} onGoToSettings={onGoToSettings} />
       </section>
@@ -82,7 +96,18 @@ const InsightsView = ({
       </section>
 
       <section className="glass-card glass-card-interactive rounded-3xl p-6">
-        <SpendingTrendCard data={activeTrendData} viewMode={viewMode} />
+        <SpendingTrendCard data={activeTrendData} viewMode={viewMode} monthlyBudget={monthlyBudget} />
+      </section>
+
+      <section className="glass-card glass-card-interactive rounded-3xl p-6">
+        {/* 期間が変わったら選択中の日付をリセットするため key を付ける */}
+        <SpendingPatternCard
+          key={`${viewMode}-${currentYear}-${currentMonth}`}
+          expenses={chartExpenses}
+          viewMode={viewMode}
+          year={currentYear}
+          month={currentMonth}
+        />
       </section>
     </div>
   );

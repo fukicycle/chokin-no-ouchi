@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPiggyBank, faGaugeHigh, faTriangleExclamation, faCalendarDay } from "@fortawesome/free-solid-svg-icons";
+import { projectMonthTotal } from "../utils/analytics";
 
 const BudgetGaugeCard = ({
   monthlyBudget,
@@ -36,12 +37,8 @@ const BudgetGaugeCard = ({
     if (!periodBudget) return null;
 
     if (viewMode === "month") {
-      const isCurrentMonth = year === today.getFullYear() && month === today.getMonth() + 1;
-      const daysInMonth = new Date(year, month, 0).getDate();
-      const daysElapsed = isCurrentMonth ? today.getDate() : daysInMonth;
-      if (!isCurrentMonth || daysElapsed >= daysInMonth) return null;
-      const variableTotal = Math.max(0, currentTotal - fixedTotal);
-      const projected = fixedTotal + (variableTotal / daysElapsed) * daysInMonth;
+      const projected = projectMonthTotal(currentTotal, fixedTotal, year, month, today);
+      if (projected === null) return null;
       return { projected, rate: (projected / periodBudget) * 100 };
     } else {
       const isCurrentYear = year === today.getFullYear();
