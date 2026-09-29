@@ -1,4 +1,5 @@
-const GEMINI_MODEL = "gemini-3.6-flash";
+// 先頭がデフォルト。無料枠では混雑時に503が返ることがあるため、順に次のモデルへフォールバックする
+export const GEMINI_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash"];
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 const RECEIPT_SCHEMA = {
@@ -48,7 +49,16 @@ const fileToBase64 = (file) =>
 // 5〜6秒/件の直列送信を呼び出し側で行うための待機ヘルパー
 export const waitBetweenRequests = (ms = 5500) => sleep(ms);
 
-export const extractReceiptData = async (apiKey, imageFile, { categories = [], maxRetries = 4 } = {}) => {
+// onStatus には進捗イベントが渡される:
+//   { type: "trying", model, modelIndex, modelCount }
+//   { type: "fallback", from, to, status }
+//   { type: "rateLimited", model, waitSeconds, attempt, maxRetries }
+// 戻り値は { data, model } (model は実際に応答したモデル)
+export const extractReceiptData = async (
+  apiKey,
+  imageFile,
+  { categories = [], maxRetries = 4, onStatus = () => {} } = {}
+) => {
   if (!apiKey) {
     throw new Error("Gemini APIキーが設定されていません。設定画面から登録してください。");
   }
@@ -86,23 +96,39 @@ export const extractReceiptData = async (apiKey, imageFile, { categories = [], m
     },
   };
 
-  let attempt = 0;
-  for (;;) {
-    const response = await fetch(`${API_BASE}/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
-    });
+  for (let modelIndex = 0; modelIndex < GEMINI_MODELS.length; modelIndex++) {
+    const model = GEMINI_MODELS[modelIndex];
+    const nextModel = GEMINI_MODELS[modelIndex + 1];
+    onStatus({ type: "trying", model, modelIndex, modelCount: GEMINI_MODELS.length });
 
-    if (response.status === 429 && attempt < maxRetries) {
-      attempt += 1;
-      await sleep(2 ** attempt * 1000);
+    let attempt = 0;
+    let response;
+    for (;;) {
+      response = await fetch(`${API_BASE}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.status === 429 && attempt < maxRetries) {
+        attempt += 1;
+        const waitSeconds = 2 ** attempt;
+        onStatus({ type: "rateLimited", model, waitSeconds, attempt, maxRetries });
+        await sleep(waitSeconds * 1000);
+        continue;
+      }
+      break;
+    }
+
+    if (response.status === 503 && nextModel) {
+      onStatus({ type: "fallback", from: model, to: nextModel, status: response.status });
       continue;
     }
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
-      throw new Error(`Gemini APIエラー (${response.status}): ${errorText || response.statusText}`);
+      const triedNote = modelIndex > 0 ? `\n試行したモデル: ${GEMINI_MODELS.slice(0, modelIndex + 1).join(" → ")}` : "";
+      throw new Error(`Gemini APIエラー (${response.status} / ${model}): ${errorText || response.statusText}${triedNote}`);
     }
 
     const data = await response.json();
@@ -112,7 +138,7 @@ export const extractReceiptData = async (apiKey, imageFile, { categories = [], m
     }
 
     try {
-      return JSON.parse(text);
+      return { data: JSON.parse(text), model };
     } catch {
       throw new Error("Geminiの応答をJSONとして解析できませんでした。");
     }

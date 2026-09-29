@@ -3,7 +3,7 @@ import { ref, push } from "firebase/database";
 import { database } from "../firebase/config";
 import { useCategories } from "../hooks/useCategories";
 import { useGeminiApiKey } from "../hooks/useGeminiApiKey";
-import { extractReceiptData, waitBetweenRequests } from "../services/geminiReceipt";
+import { GEMINI_MODELS, extractReceiptData, waitBetweenRequests } from "../services/geminiReceipt";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCamera,
@@ -32,11 +32,28 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
     setIsProcessingQueue(true);
     for (let i = 0; i < queueItems.length; i++) {
       const item = queueItems[i];
-      updateItem(item.id, { status: "processing", error: null });
+      updateItem(item.id, { status: "processing", error: null, model: null, progressNote: null });
       try {
-        const result = await extractReceiptData(apiKey, item.file, { categories });
+        const { data: result, model } = await extractReceiptData(apiKey, item.file, {
+          categories,
+          onStatus: (event) => {
+            if (event.type === "trying") {
+              updateItem(item.id, { model: event.model });
+            } else if (event.type === "fallback") {
+              updateItem(item.id, {
+                progressNote: `${event.from} が混雑中 (${event.status}) のため ${event.to} で再試行中`,
+              });
+            } else if (event.type === "rateLimited") {
+              updateItem(item.id, {
+                progressNote: `レート制限中 (429)。${event.waitSeconds}秒後に再試行 (${event.attempt}/${event.maxRetries})`,
+              });
+            }
+          },
+        });
         updateItem(item.id, {
           status: "done",
+          model,
+          progressNote: null,
           data: {
             date: result.date || new Date().toISOString().slice(0, 10),
             category: result.category || "",
@@ -48,7 +65,11 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
         });
       } catch (error) {
         console.error("レシート解析に失敗しました:", error);
-        updateItem(item.id, { status: "error", error: error.message || "解析に失敗しました。" });
+        updateItem(item.id, {
+          status: "error",
+          error: error.message || "解析に失敗しました。",
+          progressNote: null,
+        });
       }
 
       if (i < queueItems.length - 1) {
@@ -75,6 +96,8 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
       status: "pending",
       error: null,
       data: null,
+      model: null,
+      progressNote: null,
     }));
 
     setItems((prev) => [...prev, ...newItems]);
@@ -174,19 +197,39 @@ const ReceiptScanForm = ({ userId, familyId, onClose }) => {
                 />
                 <div className="flex-1 min-w-0">
                   {item.status === "processing" && (
-                    <span className="flex items-center space-x-1.5 text-xs font-bold text-cyan-700 dark:text-cyan-400">
-                      <FontAwesomeIcon icon={faSpinner} spin />
-                      <span>解析中...</span>
-                    </span>
+                    <div className="space-y-0.5">
+                      <span className="flex items-center space-x-1.5 text-xs font-bold text-cyan-700 dark:text-cyan-400">
+                        <FontAwesomeIcon icon={faSpinner} spin />
+                        <span>解析中...</span>
+                      </span>
+                      {item.model && (
+                        <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 break-all">
+                          モデル: {item.model}
+                        </span>
+                      )}
+                      {item.progressNote && (
+                        <span className="block text-[10px] font-bold text-amber-700 dark:text-amber-400 break-words">
+                          {item.progressNote}
+                        </span>
+                      )}
+                    </div>
                   )}
                   {item.status === "pending" && (
                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400">待機中...</span>
                   )}
                   {item.status === "done" && (
-                    <span className="flex items-center space-x-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                      <FontAwesomeIcon icon={faCheckCircle} />
-                      <span>解析完了 - 内容を確認してください</span>
-                    </span>
+                    <div className="space-y-0.5">
+                      <span className="flex items-center space-x-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        <FontAwesomeIcon icon={faCheckCircle} />
+                        <span>解析完了 - 内容を確認してください</span>
+                      </span>
+                      {item.model && (
+                        <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 break-all">
+                          モデル: {item.model}
+                          {item.model !== GEMINI_MODELS[0] && "（フォールバック）"}
+                        </span>
+                      )}
+                    </div>
                   )}
                   {item.status === "error" && (
                     <span className="flex items-start space-x-1.5 text-xs font-bold text-red-600 dark:text-red-400">
