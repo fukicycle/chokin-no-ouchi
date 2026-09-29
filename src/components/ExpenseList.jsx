@@ -218,8 +218,13 @@ const ExpenseList = ({
                 <span className="text-[10px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
                   {new Date(expense.date).toLocaleDateString("ja-JP")}
                 </span>
-                <span className="text-sm font-bold text-slate-800 dark:text-white">
+                <span className="flex items-center gap-1.5 text-sm font-bold text-slate-800 dark:text-white">
                   {expense.category}
+                  {expense.isFixed && (
+                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300">
+                      固定費
+                    </span>
+                  )}
                 </span>
                 {expense.description && (
                   <p className="text-xs text-slate-600 dark:text-slate-300 max-w-[180px] truncate">

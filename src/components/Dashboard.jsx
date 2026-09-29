@@ -8,6 +8,7 @@ import { useMonthlyExpenses } from "../hooks/useMonthlyExpenses";
 import { useRecentExpenses } from "../hooks/useRecentExpenses";
 import { useAnnualExpenses } from "../hooks/useAnnualExpenses";
 import { useBudget } from "../hooks/useBudget";
+import { useFixedCostSync } from "../hooks/useFixedCostSync";
 import Modal from "./Modal";
 import ExpenseForm from "./ExpenseForm";
 import ReceiptScanForm from "./ReceiptScanForm";
@@ -36,6 +37,9 @@ const Dashboard = () => {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
   const { monthlyBudget } = useBudget(familyId);
+
+  // 登録済みの固定費を今月の支出として自動計上する
+  useFixedCostSync(familyId, currentUser?.uid);
 
   // 今月の支出データ取得
   const { expenses, loading: expensesLoading } = useMonthlyExpenses(

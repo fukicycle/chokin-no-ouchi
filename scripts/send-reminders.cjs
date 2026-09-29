@@ -81,6 +81,8 @@ const sendReminders = async () => {
       
       const hasRegisteredToday = Object.values(expenses).some(expense => {
         if (!expense.date) return false;
+        // 固定費の自動計上はユーザーの入力ではないので「登録済み」とみなさない
+        if (expense.isFixed) return false;
         // 日付のプレフィックス (YYYY-MM-DD) が今日と一致するか
         return expense.date.startsWith(todayJST);
       });

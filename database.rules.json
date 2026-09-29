@@ -18,6 +18,12 @@
         ".write": "auth != null && root.child('users').child(auth.uid).child('familyId').val() === $familyId",
         ".indexOn": ["date"]
       }
+    },
+    "fixedCosts": {
+      "$familyId": {
+        ".read": "auth != null && root.child('users').child(auth.uid).child('familyId').val() === $familyId",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('familyId').val() === $familyId"
+      }
     }
   }
 }

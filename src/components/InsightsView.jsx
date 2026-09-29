@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useMemo } from "react";
 import BudgetGaugeCard from "./BudgetGaugeCard";
 import PeriodComparisonCard from "./PeriodComparisonCard";
 import CategoryRankingCard from "./CategoryRankingCard";
 import CategoryMoversCard from "./CategoryMoversCard";
 import SpendingTrendCard from "./SpendingTrendCard";
+import FixedVariableCard from "./FixedVariableCard";
 
 const InsightsView = ({
   viewMode,
@@ -22,6 +23,12 @@ const InsightsView = ({
   onGoToSettings,
   onCategoryClick,
 }) => {
+  // 月末着地予測で固定費を日割りペースに含めないために使う
+  const fixedTotal = useMemo(
+    () => chartExpenses.reduce((sum, e) => sum + (e.isFixed ? e.amount || 0 : 0), 0),
+    [chartExpenses]
+  );
+
   return (
     <div className="space-y-6">
       <section className="glass-card glass-card-interactive rounded-3xl p-6">
@@ -34,6 +41,7 @@ const InsightsView = ({
           viewMode={viewMode}
           year={currentYear}
           month={currentMonth}
+          fixedTotal={fixedTotal}
           onGoToSettings={onGoToSettings}
         />
       </section>
@@ -50,6 +58,10 @@ const InsightsView = ({
           loading={loading}
           annualLoading={annualLoading}
         />
+      </section>
+
+      <section className="glass-card glass-card-interactive rounded-3xl p-6">
+        <FixedVariableCard expenses={chartExpenses} viewMode={viewMode} onGoToSettings={onGoToSettings} />
       </section>
 
       <section className="glass-card glass-card-interactive rounded-3xl p-6">
