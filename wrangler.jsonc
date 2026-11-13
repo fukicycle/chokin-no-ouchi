@@ -1,9 +1,14 @@
 {
-  // Cloudflare に公開する設定。name はアプリごとに変える
+  // Cloudflare に公開する設定
   "name": "chokin-no-ouchi",
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application",
   },
+  // kotli-sharp.jp（Cloudflare で DNS を管理）のサブドメインで公開する。
+  // 公開時に Cloudflare が DNS レコードと証明書を自動で作る
+  "routes": [{ "pattern": "chokin.kotli-sharp.jp", "custom_domain": true }],
+  // 公開先は上のドメインだけにする（ログインの承認済みドメインを一つにするため）
+  "workers_dev": false,
 }

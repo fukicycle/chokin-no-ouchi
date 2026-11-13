@@ -10,6 +10,7 @@
 - **何をするアプリか（1文）**：家族で共有する家計簿。支出を記録し、予算・固定費・傾向を見て使いすぎを防ぐ
 - **使う人と、使う場面**：同じ家に住む家族。買い物の直後（レシートを撮る・手で入れる）と、月の途中・月末の振り返り
 - **一番よく行う操作**：支出を記録する（→ どのタブでも右下の［記録する］）
+- **公開先**：https://chokin.kotli-sharp.jp（Cloudflare Workers のカスタムドメイン。`wrangler.jsonc`）
 - **扱うデータと保存先**：Firebase Realtime Database（v1 と同じプロジェクト）。`users/{uid}`（家族 ID・通知の購読）、`expenses/{familyId}`、`fixedCosts/{familyId}`、`budgets/{familyId}`。ルールは `database.rules.json`（`firebase deploy --only database` で反映）。Gemini の API キーとモデルは端末（localStorage）だけ
 - **このアプリだけの決め事**：
   - 画面は ホーム（`/`）・分析（`/insights`）・履歴（`/history`）の3タブ。見ている期間（月・年）は `src/data/period.tsx` で3タブ共通

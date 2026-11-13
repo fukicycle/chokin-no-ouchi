@@ -23,6 +23,8 @@ npm run build
 
 ## 公開（Cloudflare）
 
+公開先は **https://chokin.kotli-sharp.jp** です（`wrangler.jsonc` の `routes`。kotli-sharp.jp の DNS は Cloudflare で管理しているので、公開時に DNS レコードと証明書が自動で作られます）。
+
 タグを打ったときだけ公開します（`.github/workflows/deploy.yml`）。
 
 1. `package.json` の `version` を上げ、`RELEASE_NOTES.md` に同じ版を書く
@@ -32,7 +34,7 @@ npm run build
 初回だけ必要なこと：
 
 - リポジトリの Secrets に `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を登録する
-- Firebase コンソール ＞ Authentication ＞ 設定 ＞ 承認済みドメイン に、公開先のドメイン（`chokin-no-ouchi.<アカウント>.workers.dev` など）を足す（足さないと Google でログインできない）
+- Firebase コンソール ＞ Authentication ＞ 設定 ＞ 承認済みドメイン に `chokin.kotli-sharp.jp` を足す（足さないと Google でログインできない）
 - `firebase deploy --only database` でデータベースのルール（`database.rules.json`）を反映する
 
 入力忘れのお知らせは `daily-reminder.yml` が毎晩動きます（Secrets：`FIREBASE_SERVICE_ACCOUNT`・`VAPID_PUBLIC_KEY`・`VAPID_PRIVATE_KEY`。v1 と同じ）。
