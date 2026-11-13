@@ -10,6 +10,7 @@ import type { Expense } from "../data/types";
 import { dailyAllowance, formatYen, sumAmount, sumFixed, totalsByCategory } from "../lib/analytics";
 import { Bars } from "../ui/Bars";
 import { EmptyState } from "../ui/EmptyState";
+import { GlassPanel } from "../ui/GlassPanel";
 import { Meter } from "../ui/Meter";
 import { PeriodBar } from "../ui/PeriodBar";
 import { ExpenseRow } from "./HistoryScreen";
@@ -36,46 +37,46 @@ export function HomeScreen() {
     <div className="page">
       <PeriodBar />
 
-      <section className="hero">
-        <p className="hero-label">{period.noun}の支出</p>
-        <p className="hero-amount">{loading ? "…" : formatYen(total)}</p>
-        {fixed > 0 && (
-          <p className="hero-sub">
-            うち固定費 {formatYen(fixed)}・変動費 {formatYen(total - fixed)}
-          </p>
-        )}
-      </section>
-
-      {budget > 0 ? (
-        <section className="block">
-          <div className="block-head">
-            <span>予算 {formatYen(budget)}</span>
-            <span className={total > budget ? "status-error" : undefined}>
-              {total > budget
-                ? `${formatYen(total - budget)} 超えています`
-                : `残り ${formatYen(budget - total)}`}
-            </span>
-          </div>
-          <Meter ratio={total / budget} label="予算の消化" />
-          {allowance && allowance.remaining > 0 && (
-            <p className="hint">
-              今日から月末まで（{allowance.remainingDays}日）、1日あたり{" "}
-              <strong>{formatYen(Math.floor(allowance.perDay))}</strong> まで使えます
+      <GlassPanel className="summary">
+        <section className="hero">
+          <p className="hero-label">{period.noun}の支出</p>
+          <p className="hero-amount">{loading ? "…" : formatYen(total)}</p>
+          {fixed > 0 && (
+            <p className="hero-sub">
+              うち固定費 {formatYen(fixed)}・変動費 {formatYen(total - fixed)}
             </p>
           )}
         </section>
-      ) : (
-        <section className="block">
-          <p className="hint">
-            月の予算を決めると、あといくら使えるかがここに出ます。{" "}
-            <button className="link-button" onClick={() => navigate("/settings/budget")}>
-              予算を決める
-            </button>
-          </p>
-        </section>
-      )}
 
-      <hr className="fk-groove" />
+        {budget > 0 ? (
+          <section className="block">
+            <div className="block-head">
+              <span>予算 {formatYen(budget)}</span>
+              <span className={total > budget ? "status-error" : undefined}>
+                {total > budget
+                  ? `${formatYen(total - budget)} 超えています`
+                  : `残り ${formatYen(budget - total)}`}
+              </span>
+            </div>
+            <Meter ratio={total / budget} label="予算の消化" />
+            {allowance && allowance.remaining > 0 && (
+              <p className="hint">
+                今日から月末まで（{allowance.remainingDays}日）、1日あたり{" "}
+                <strong>{formatYen(Math.floor(allowance.perDay))}</strong> まで使えます
+              </p>
+            )}
+          </section>
+        ) : (
+          <section className="block">
+            <p className="hint">
+              月の予算を決めると、あといくら使えるかがここに出ます。{" "}
+              <button className="link-button" onClick={() => navigate("/settings/budget")}>
+                予算を決める
+              </button>
+            </p>
+          </section>
+        )}
+      </GlassPanel>
 
       {!loading && expenses.length === 0 ? (
         <EmptyState title={`${period.noun}の記録はまだありません`}>

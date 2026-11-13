@@ -1,25 +1,28 @@
 /*
   貯金のおうちの色。design は色を持たないので、ここで5色を渡す（DESIGN.md 2）。
-  差し色は「小判色」：昼は黄土、夜は山吹。地は生成りから薄い抹茶へのグラデーション。
-  渡した色は `npx fk-contrast` で昼・夜とも確かめてある（文字・差し色とも 4.5:1 以上）。
+  - 差し色は「小判色」：昼は黄土、夜は山吹
+  - 地は「蜂蜜色から桜色」へのグラデーション（夜は焦茶から葡萄色）。上に重なるガラスに色が透ける
+  - 差し色のグラデーション（小判色→桜色）は、主ボタン・合計の金額・割合の棒・推移の線だけに使う
+  渡した色は `npx fk-contrast` で昼・夜とも確かめてある（文字・差し色とも 4.5:1 以上。
+  グラデーションの終わりの色 --app-accent-2 も、地と主ボタンの文字に対して 4.5:1 以上）。
 
   製品で足す色（--app-*）もここにまとめる。16 進数をほかのファイルに散らばらせない。
 */
 
 :root {
-  --fk-ground-1: #f5efe3;
-  --fk-ground-2: #e8e6da;
+  --fk-ground-1: #faebcd;
+  --fk-ground-2: #f3d3dc;
   --fk-ink: #2a2219;
-  --fk-accent: #865600;
+  --fk-accent: #835400;
   --fk-on-accent: #ffffff;
 
+  /* 差し色のグラデーションの終わり（桜色） */
+  --app-accent-2: #a33a5a;
   /* 補足の文字（地の両端に 4.5:1 以上） */
-  --app-ink-muted: #6b5f50;
+  --app-ink-muted: #68584a;
   /* 取り消せない操作・エラー。差し色とは別の色にし、文言とアイコンでも伝える */
   --app-error: #b3261e;
   --app-on-error: #ffffff;
-  /* 押したときの薄い差し色 */
-  --app-accent-soft: color-mix(in srgb, var(--fk-accent) 14%, transparent);
 
   --app-font-body: "Zen Kaku Gothic New", system-ui, sans-serif;
   --app-font-display: "Zen Old Mincho", serif;
@@ -27,13 +30,14 @@
 }
 
 :root[data-theme="dark"] {
-  --fk-ground-1: #17130d;
-  --fk-ground-2: #2a2317;
-  --fk-ink: #f2ebdf;
-  --fk-accent: #e3b55c;
+  --fk-ground-1: #1d140a;
+  --fk-ground-2: #2d1727;
+  --fk-ink: #f3ebe0;
+  --fk-accent: #e5b75e;
   --fk-on-accent: #2a1d05;
 
-  --app-ink-muted: #b9ad9c;
+  --app-accent-2: #f2a6bb;
+  --app-ink-muted: #bcae9e;
   --app-error: #ff9c8f;
   --app-on-error: #3a0905;
 }
@@ -41,14 +45,21 @@
 /* テーマが「自動」のときは端末の設定に合わせる */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --fk-ground-1: #17130d;
-    --fk-ground-2: #2a2317;
-    --fk-ink: #f2ebdf;
-    --fk-accent: #e3b55c;
+    --fk-ground-1: #1d140a;
+    --fk-ground-2: #2d1727;
+    --fk-ink: #f3ebe0;
+    --fk-accent: #e5b75e;
     --fk-on-accent: #2a1d05;
 
-    --app-ink-muted: #b9ad9c;
+    --app-accent-2: #f2a6bb;
+    --app-ink-muted: #bcae9e;
     --app-error: #ff9c8f;
     --app-on-error: #3a0905;
   }
+}
+
+/* 色から作るもの（昼・夜とも上の変数から計算する） */
+:root {
+  --app-accent-soft: color-mix(in srgb, var(--fk-accent) 14%, transparent);
+  --app-gradient: linear-gradient(115deg, var(--fk-accent), var(--app-accent-2));
 }

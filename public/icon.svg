@@ -1,11 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- 貯金のおうち：屋根のある家に、小判を入れる口 -->
-  <rect width="512" height="512" rx="112" fill="#865600"/>
-  <g fill="none" stroke="#f5efe3" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+  <!-- 貯金のおうち：屋根のある家に、小判を入れる口。地は小判色から桜色へのグラデーション -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#835400"/>
+      <stop offset="1" stop-color="#a33a5a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <g fill="none" stroke="#faebcd" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
     <path d="M104 244 256 120l152 124"/>
     <path d="M144 214v170a24 24 0 0 0 24 24h176a24 24 0 0 0 24-24V214"/>
     <path d="M222 236h68"/>
   </g>
-  <ellipse cx="256" cy="322" rx="46" ry="54" fill="#f5efe3"/>
-  <path d="M256 296v52" stroke="#865600" stroke-width="12" stroke-linecap="round"/>
+  <ellipse cx="256" cy="322" rx="46" ry="54" fill="#faebcd"/>
+  <path d="M256 296v52" stroke="#93474a" stroke-width="12" stroke-linecap="round"/>
 </svg>
