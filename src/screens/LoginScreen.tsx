@@ -1,7 +1,6 @@
-// ログイン前の画面。何ができるアプリかを一言で伝え、ログインのボタンだけを置く。
+// ログイン前の画面。Google でログインするボタンだけを、親指の届く画面の中ほどに置く。
 import { useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
-import { GlassPanel } from "../ui/GlassPanel";
 import { Icon } from "../ui/Icon";
 
 export function LoginScreen() {
@@ -9,38 +8,32 @@ export function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (
-    <div className="page login">
-      <GlassPanel className="login-panel">
-        <p className="login-title">家族の家計を、ひとつのおうちで。</p>
-        <p className="lead">
-          記録した支出は家族で共有されます。レシートの読み取り、固定費の自動記録、今月の使いすぎの見通しまで、ここでまとめて見られます。
-        </p>
-        <button
-          className="fk-button fk-button--primary fk-button--block"
-          disabled={busy}
-          onClick={async () => {
-            setError(null);
-            setBusy(true);
-            try {
-              await signIn();
-            } catch (e) {
-              const code = (e as { code?: string }).code ?? "";
-              if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request") {
-                setError("ログインできませんでした。電波の届く所で、もう一度試してください。");
-              }
-            } finally {
-              setBusy(false);
+    <div className="login">
+      <button
+        className="fk-button fk-button--primary login-button"
+        disabled={busy}
+        onClick={async () => {
+          setError(null);
+          setBusy(true);
+          try {
+            await signIn();
+          } catch (e) {
+            const code = (e as { code?: string }).code ?? "";
+            if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request") {
+              setError("ログインできませんでした。電波の届く所で、もう一度試してください。");
             }
-          }}
-        >
-          Google でログイン
-        </button>
-        {error && (
-          <p className="status-error" role="alert">
-            <Icon name="error" size="sm" /> {error}
-          </p>
-        )}
-      </GlassPanel>
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        {busy ? "ログインしています…" : "Google でログイン"}
+      </button>
+      {error && (
+        <p className="status-error" role="alert">
+          <Icon name="error" size="sm" /> {error}
+        </p>
+      )}
     </div>
   );
 }

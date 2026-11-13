@@ -374,7 +374,32 @@
   font-variant-numeric: tabular-nums;
 }
 select.fk-input {
+  -webkit-appearance: none;
   appearance: none;
+}
+/* iPhone の Safari では日付欄が独自の幅を持ち、width や padding が効かずに画面からはみ出す。
+   見た目を標準のものから外し、幅を親に合わせ直す */
+input[type="date"].fk-input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  height: 48px;
+  line-height: 46px;
+  padding-block: 0;
+  text-align: left;
+}
+input[type="date"].fk-input::-webkit-date-and-time-value {
+  margin: 0;
+  text-align: left;
+}
+input[type="date"].fk-input::-webkit-datetime-edit {
+  padding: 0;
+}
+/* 欄の幅が中身に引っぱられないように */
+.field {
+  min-width: 0;
 }
 .form-submit {
   margin-top: var(--fk-space-6);
@@ -452,26 +477,19 @@ select.fk-input {
   font-weight: 600;
 }
 
-/* ---- ログイン ---- */
+/* ---- ログイン：ボタンだけを画面の中ほどに ---- */
 .login {
-  padding-top: clamp(24px, 10vh, 100px);
-}
-.login-panel > .fk-glass-in {
+  height: 100%;
   display: grid;
+  place-content: center;
+  justify-items: center;
   gap: var(--fk-space-4);
+  padding: env(safe-area-inset-top) var(--fk-space-4) env(safe-area-inset-bottom);
 }
-.login-title {
-  margin: 0;
-  word-break: auto-phrase;
-  text-wrap: balance;
-  font-family: var(--app-font-display);
-  font-size: 26px;
-  line-height: 1.5;
-  font-weight: 600;
-  background: var(--app-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.login-button {
+  min-width: 260px;
+  min-height: 56px;
+  font-size: 16px;
 }
 
 /* ---- 分析 ---- */

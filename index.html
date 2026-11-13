@@ -3,10 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#faebcd" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1d140a" media="(prefers-color-scheme: dark)" />
+    <!-- 画面上端（ステータスバー・ブラウザのバー）の色。地の1色目に合わせる。
+         テーマを選び直したときは src/app/themeColor.ts が両方の値を書き換える -->
+    <meta name="theme-color" content="#fcf6ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1c1915" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <!-- ホーム画面から開いたとき、ステータスバーを白・黒の帯にせず、地のグラデーションを透かす
+         （上端の余白は env(safe-area-inset-top) で空けている） -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,7 +25,14 @@
       // 保存したテーマを最初の描画の前に当てる（ちらつき防止）
       try {
         var t = JSON.parse(localStorage.getItem("%BASE_URL%::theme") || '"auto"');
-        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+        if (t === "light" || t === "dark") {
+          document.documentElement.dataset.theme = t;
+          // 端末の設定と違うテーマを選んでいても、上端の色が最初から合うように
+          var c = t === "dark" ? "#1c1915" : "#fcf6ee";
+          document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+            m.setAttribute("content", c);
+          });
+        }
       } catch (e) {}
     </script>
   </head>

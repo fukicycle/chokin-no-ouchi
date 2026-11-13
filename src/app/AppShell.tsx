@@ -49,6 +49,11 @@ export function AppShell() {
     else navigate(inSettings && location.pathname !== "/settings" ? "/settings" : "/");
   };
 
+  // ログイン前はトップバーもタブバーも出さず、ログインのボタンだけにする
+  if (gated) {
+    return <div className="shell">{loading ? null : <LoginScreen />}</div>;
+  }
+
   return (
     <div className="shell">
       {/* トップバーは中身の上に浮くガラス。中身はこの下を流れる */}
@@ -86,13 +91,13 @@ export function AppShell() {
       </header>
 
       <main key={location.pathname} className="shell-main fk-scroll">
-        {!gated ? <Outlet /> : loading ? null : <LoginScreen />}
+        <Outlet />
       </main>
 
       {/* 設定は別の場所として開くので、タブバーは出さない（戻るで元の画面へ） */}
       {user && <FixedCostSync />}
 
-      {tabs.length > 0 && !inSettings && !gated && (
+      {tabs.length > 0 && !inSettings && (
         <nav className="tabbar fk-glass" aria-label="画面の切り替え">
           <div className="fk-glass-bd" />
           <div className="fk-glass-in">
