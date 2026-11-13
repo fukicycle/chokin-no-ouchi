@@ -1,0 +1,54 @@
+/*
+  貯金のおうちの色。design は色を持たないので、ここで5色を渡す（DESIGN.md 2）。
+  差し色は「小判色」：昼は黄土、夜は山吹。地は生成りから薄い抹茶へのグラデーション。
+  渡した色は `npx fk-contrast` で昼・夜とも確かめてある（文字・差し色とも 4.5:1 以上）。
+
+  製品で足す色（--app-*）もここにまとめる。16 進数をほかのファイルに散らばらせない。
+*/
+
+:root {
+  --fk-ground-1: #f5efe3;
+  --fk-ground-2: #e8e6da;
+  --fk-ink: #2a2219;
+  --fk-accent: #865600;
+  --fk-on-accent: #ffffff;
+
+  /* 補足の文字（地の両端に 4.5:1 以上） */
+  --app-ink-muted: #6b5f50;
+  /* 取り消せない操作・エラー。差し色とは別の色にし、文言とアイコンでも伝える */
+  --app-error: #b3261e;
+  --app-on-error: #ffffff;
+  /* 押したときの薄い差し色 */
+  --app-accent-soft: color-mix(in srgb, var(--fk-accent) 14%, transparent);
+
+  --app-font-body: "Zen Kaku Gothic New", system-ui, sans-serif;
+  --app-font-display: "Zen Old Mincho", serif;
+  --app-font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+:root[data-theme="dark"] {
+  --fk-ground-1: #17130d;
+  --fk-ground-2: #2a2317;
+  --fk-ink: #f2ebdf;
+  --fk-accent: #e3b55c;
+  --fk-on-accent: #2a1d05;
+
+  --app-ink-muted: #b9ad9c;
+  --app-error: #ff9c8f;
+  --app-on-error: #3a0905;
+}
+
+/* テーマが「自動」のときは端末の設定に合わせる */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --fk-ground-1: #17130d;
+    --fk-ground-2: #2a2317;
+    --fk-ink: #f2ebdf;
+    --fk-accent: #e3b55c;
+    --fk-on-accent: #2a1d05;
+
+    --app-ink-muted: #b9ad9c;
+    --app-error: #ff9c8f;
+    --app-on-error: #3a0905;
+  }
+}

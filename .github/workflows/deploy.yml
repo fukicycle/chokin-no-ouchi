@@ -1,33 +1,49 @@
-name: Deploy to GitHub Pages
-
+# タグ（v1.2.0 など）を push したときだけ Cloudflare に公開する。master へのマージでは公開しない（CI だけ）。
+# タグと package.json の version が違うとき、タグのコミットが master に入っていないときは公開しない。
+name: Deploy
 on:
   push:
-    branches:
-      - master
+    tags: ["v*.*.*"]
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
         with:
-          # Vite 7 は Node.js 20.19+ / 22.12+ が必要 (それ未満だと
-          # index.html のインライン<script>/<style>のハッシュ計算で使う
-          # crypto.hash が無く、ビルドが失敗する)。
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build with environment variables
-        run: npm run build
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+          fetch-depth: 0
+      - name: タグのコミットが master に入っているか
+        run: |
+          git fetch origin master --quiet
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "::error::タグ $GITHUB_REF_NAME のコミットが master にありません。master にマージしてからタグを打ってください。"
+            exit 1
+          fi
+      - name: タグと版番号・リリースノート
+        run: node scripts/check-release.mjs "$GITHUB_REF_NAME"
+      - name: Cloudflare の認証情報
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::リポジトリの Secrets に CLOUDFLARE_API_TOKEN と CLOUDFLARE_ACCOUNT_ID を登録してください"
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
         with:
-          branch: gh-pages
-          folder: dist
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test
+      - run: npm run build
+      - name: 公開
+        run: npx wrangler deploy

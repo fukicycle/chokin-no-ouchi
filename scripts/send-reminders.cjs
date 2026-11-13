@@ -96,7 +96,7 @@ const sendReminders = async () => {
       const payload = JSON.stringify({
         title: "貯金のおうち 🏠",
         body: "今日の支出は登録しましたか？おうちの家計簿を更新しましょう！",
-        icon: "/chokin-no-ouchi/icon.svg"
+        icon: "/icon.svg"
       });
 
       try {
