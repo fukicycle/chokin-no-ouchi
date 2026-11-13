@@ -12,6 +12,8 @@ import { Bars } from "../ui/Bars";
 import { EmptyState } from "../ui/EmptyState";
 import { GlassPanel } from "../ui/GlassPanel";
 import { Meter } from "../ui/Meter";
+import { SkeletonLines } from "../ui/Skeleton";
+import { useAnimatedNumber } from "../ui/useAnimatedNumber";
 import { PeriodBar } from "../ui/PeriodBar";
 import { ExpenseRow } from "./HistoryScreen";
 import { useHistoryFilter } from "./historyFilter";
@@ -20,13 +22,14 @@ const CATEGORY_LIMIT = 5;
 
 export function HomeScreen() {
   const period = usePeriod();
-  const { expenses, loading } = useExpensesInRange(period.start, period.end);
+  const { expenses, loading, refreshing } = useExpensesInRange(period.start, period.end);
   const { monthlyBudget } = useBudget();
   const navigate = useNavigate();
   const { setCategory } = useHistoryFilter();
   const [selected, setSelected] = useState<Expense | null>(null);
 
   const total = sumAmount(expenses);
+  const shownTotal = useAnimatedNumber(total);
   const fixed = sumFixed(expenses);
   const budget = period.mode === "month" ? monthlyBudget : monthlyBudget * 12;
   const allowance =
@@ -34,13 +37,13 @@ export function HomeScreen() {
   const categories = totalsByCategory(expenses);
 
   return (
-    <div className="page">
+    <div className={refreshing ? "page is-refreshing" : "page"}>
       <PeriodBar />
 
       <GlassPanel className="summary">
         <section className="hero">
           <p className="hero-label">{period.noun}の支出</p>
-          <p className="hero-amount">{loading ? "…" : formatYen(total)}</p>
+          <p className="hero-amount">{loading ? "…" : formatYen(shownTotal)}</p>
           {fixed > 0 && (
             <p className="hero-sub">
               うち固定費 {formatYen(fixed)}・変動費 {formatYen(total - fixed)}
@@ -78,7 +81,9 @@ export function HomeScreen() {
         )}
       </GlassPanel>
 
-      {!loading && expenses.length === 0 ? (
+      {loading ? (
+        <SkeletonLines rows={5} />
+      ) : expenses.length === 0 ? (
         <EmptyState title={`${period.noun}の記録はまだありません`}>
           右下の［記録する］から、使ったお金を残せます。
         </EmptyState>

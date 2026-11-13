@@ -156,6 +156,8 @@
   max-width: calc(100% - 6px);
   border-radius: var(--fk-radius-pill);
   background: var(--app-gradient);
+  /* 期間を送ったとき、棒が新しい長さへのびちぢみする */
+  transition: width 0.45s var(--app-ease);
 }
 .meter-fill--over {
   background: var(--app-error);
@@ -226,6 +228,8 @@
   min-width: 4px;
   border-radius: var(--fk-radius-pill);
   background: var(--app-gradient);
+  /* 期間を送ったとき、棒が新しい長さへのびちぢみする */
+  transition: width 0.45s var(--app-ease);
 }
 
 /* ---- 支出の一覧 ---- */
@@ -702,4 +706,33 @@ input[type="date"].fk-input::-webkit-datetime-edit {
   border: 0;
   border-radius: 2px;
   background: var(--app-gradient);
+}
+
+/* ---- 最初の読み込みの間の、中身とほぼ同じ形の面（動かない） ---- */
+.skeleton {
+  display: grid;
+  gap: var(--fk-space-4);
+  padding: var(--fk-space-4) 0;
+}
+.skeleton-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px;
+}
+.skeleton-bar {
+  display: block;
+  height: 12px;
+  border-radius: var(--fk-radius-pill);
+  background: color-mix(in srgb, var(--fk-ink) 8%, transparent);
+}
+.skeleton-bar--short {
+  width: 18%;
+}
+.skeleton-panel {
+  height: 190px;
+}
+/* 予算などの数字が届いても札の高さが変わらないよう、最初から高さを確保する */
+.summary > .fk-glass-in {
+  min-height: 190px;
 }

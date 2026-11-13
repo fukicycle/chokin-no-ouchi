@@ -1,6 +1,7 @@
 // 「元に戻す」付きのトーストと、確認ダイアログ。
 // どちらも親指の届く下側に出す。確認ダイアログは「やめる」を左、実行を右に置く（実行が親指の自然な位置）。
 // トーストは墨の面（昼夜で反転）。中身の上に一瞬だけ重なるものなので、ガラスにせず読みやすさを優先する。
+// どちらも、消えるときは小さく沈んでから消える（いきなり消さない）。
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 type ToastInput = { message: string; actionLabel?: string; onAction?: () => void; duration?: number };
@@ -14,15 +15,20 @@ type Ctx = {
 const FeedbackContext = createContext<Ctx | null>(null);
 
 export function FeedbackProvider({ children }: { children: ReactNode }) {
-  const [toast, setToast] = useState<(ToastInput & { key: number }) | null>(null);
-  const [dialog, setDialog] = useState<(ConfirmInput & { resolve: (ok: boolean) => void }) | null>(null);
+  const [toast, setToast] = useState<(ToastInput & { key: number; leaving?: boolean }) | null>(null);
+  const [dialog, setDialog] = useState<
+    (ConfirmInput & { resolve: (ok: boolean) => void; leaving?: boolean }) | null
+  >(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const confirmButton = useRef<HTMLButtonElement>(null);
 
   const showToast = useCallback((t: ToastInput) => {
     clearTimeout(timer.current);
     setToast({ ...t, key: Date.now() });
-    timer.current = setTimeout(() => setToast(null), t.duration ?? (t.onAction ? 6000 : 3000));
+    timer.current = setTimeout(
+      () => setToast((cur) => (cur ? { ...cur, leaving: true } : cur)),
+      t.duration ?? (t.onAction ? 6000 : 3000),
+    );
   }, []);
 
   const confirm = useCallback(
@@ -30,18 +36,20 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  // 答えはすぐ返し、ダイアログは消える動きのあとで外す
   const close = (ok: boolean) => {
-    dialog?.resolve(ok);
-    setDialog(null);
+    if (!dialog || dialog.leaving) return;
+    dialog.resolve(ok);
+    setDialog({ ...dialog, leaving: true });
   };
 
   // FAB などがトーストに重ならないよう、表示中は下の余白を伝える
   useEffect(() => {
-    document.documentElement.style.setProperty("--app-toast-space", toast ? "64px" : "0px");
+    document.documentElement.style.setProperty("--app-toast-space", toast && !toast.leaving ? "64px" : "0px");
   }, [toast]);
 
   useEffect(() => {
-    if (!dialog) return;
+    if (!dialog || dialog.leaving) return;
     confirmButton.current?.focus();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && close(false);
     window.addEventListener("keydown", onKey);
@@ -53,14 +61,21 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       {children}
 
       {toast && (
-        <div className="toast" role="status" key={toast.key}>
+        <div
+          className={toast.leaving ? "toast is-leaving" : "toast"}
+          role="status"
+          key={toast.key}
+          onAnimationEnd={(e) => {
+            if (toast.leaving && e.target === e.currentTarget) setToast(null);
+          }}
+        >
           <span className="toast-message">{toast.message}</span>
           {toast.onAction && (
             <button
               className="toast-action"
               onClick={() => {
                 toast.onAction?.();
-                setToast(null);
+                setToast({ ...toast, leaving: true });
               }}
             >
               {toast.actionLabel ?? "元に戻す"}
@@ -70,9 +85,15 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       )}
 
       {dialog && (
-        <div className="scrim scrim--dialog" onClick={() => close(false)}>
+        <div
+          className={dialog.leaving ? "scrim scrim--dialog is-leaving" : "scrim scrim--dialog"}
+          onClick={() => close(false)}
+        >
           <div
             className="dialog fk-glass"
+            onAnimationEnd={(e) => {
+              if (dialog.leaving && e.target === e.currentTarget) setDialog(null);
+            }}
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="dialog-title"

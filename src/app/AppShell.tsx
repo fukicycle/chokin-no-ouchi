@@ -2,7 +2,7 @@
 // ┌ トップバー：戻る（2階層目から左上）・画面名・通知（風鈴）・設定（歯車、一番右）。中身の上に浮くガラス
 // ├ 中身：ここだけスクロールする（一番外側は動かない）。トップバー・タブバーの下を流れる
 // └ タブバー：一番上の画面が2つ以上のときだけ。中身の上に浮くのでガラスにする
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useMatches, useNavigate } from "react-router";
 import config from "../../app.config";
 import { NotificationsSheet } from "../notifications/NotificationsSheet";
@@ -26,6 +26,9 @@ export type RouteHandle = { title?: string };
 const tabs = config.tabs.length >= 2 ? config.tabs.slice(0, 4) : [];
 const rootPaths = tabs.length ? tabs.map((t) => t.path) : ["/"];
 
+// 画面ごとのスクロール位置。タブを行き来しても、前に見ていた所から続けられるようにする
+const scrollPositions = new Map<string, number>();
+
 export function AppShell() {
   const [noticesOpen, setNoticesOpen] = useState(false);
   const { hasUnread } = useNotifications();
@@ -38,6 +41,13 @@ export function AppShell() {
     .find(Boolean);
 
   const isRoot = rootPaths.includes(location.pathname);
+  const activeTab = tabs.findIndex((t) => t.path === location.pathname);
+
+  // 画面が変わったら、その画面で前に見ていた位置に戻す（初めての画面は一番上）
+  const main = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    if (main.current) main.current.scrollTop = scrollPositions.get(location.pathname) ?? 0;
+  }, [location.pathname]);
   const inSettings = location.pathname.startsWith("/settings");
   const { user, loading } = useAuth();
   // ログインしていなくても設定（テーマなど）とお知らせは開ける。ほかの画面はログイン画面に置き換える
@@ -90,7 +100,12 @@ export function AppShell() {
         </div>
       </header>
 
-      <main key={location.pathname} className="shell-main fk-scroll">
+      <main
+        key={location.pathname}
+        ref={main}
+        className="shell-main fk-scroll"
+        onScroll={(e) => scrollPositions.set(location.pathname, e.currentTarget.scrollTop)}
+      >
         <Outlet />
       </main>
 
@@ -101,6 +116,16 @@ export function AppShell() {
         <nav className="tabbar fk-glass" aria-label="画面の切り替え">
           <div className="fk-glass-bd" />
           <div className="fk-glass-in">
+            {/* 選んでいるタブの沈み。タブを替えると、次のタブへすべって移る */}
+            <span
+              className="tab-indicator"
+              aria-hidden="true"
+              style={{
+                width: `calc((100% - 8px) / ${tabs.length})`,
+                transform: `translateX(${Math.max(activeTab, 0) * 100}%)`,
+                opacity: activeTab < 0 ? 0 : 1,
+              }}
+            />
             {tabs.map((t) => (
               <NavLink key={t.path} to={t.path} end className="tab">
                 {({ isActive }) => (
