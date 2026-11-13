@@ -25,6 +25,7 @@ import {
 import { addMonths, monthProgress, toMonthKey } from "../lib/months";
 import { Bars } from "../ui/Bars";
 import { GlassPanel } from "../ui/GlassPanel";
+import { SkeletonLines } from "../ui/Skeleton";
 import { Meter } from "../ui/Meter";
 import { PeriodBar } from "../ui/PeriodBar";
 import { useThemeColors } from "../ui/useThemeColors";
@@ -95,7 +96,7 @@ export function InsightsScreen() {
 
   // 月：前の6ヶ月から今月まで（前月比・過去平均・推移に使う）。年：前の年から今年まで
   const rangeStart = isMonth ? new Date(period.year, period.month - 7, 1) : new Date(period.year - 1, 0, 1);
-  const { expenses: all, loading } = useExpensesInRange(rangeStart, period.end);
+  const { expenses: all, loading, refreshing } = useExpensesInRange(rangeStart, period.end);
 
   const data = useMemo(() => {
     const inRange = (e: Expense, s: Date, en: Date) => {
@@ -166,13 +167,16 @@ export function InsightsScreen() {
     return (
       <div className="page">
         <PeriodBar />
-        <p className="hint">集計しています…</p>
+        <GlassPanel className="summary">
+          <div className="skeleton-panel" aria-label="集計しています" />
+        </GlassPanel>
+        <SkeletonLines rows={6} />
       </div>
     );
   }
 
   return (
-    <div className="page">
+    <div className={refreshing ? "page is-refreshing" : "page"}>
       <PeriodBar />
 
       <Section title="予算" glass>

@@ -3,7 +3,7 @@
 import { onAuthStateChanged, signInWithPopup, signOut as fbSignOut, type User } from "firebase/auth";
 import { get, onValue, ref, set, update } from "firebase/database";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { useLive } from "../data/useLive";
+import { clearLiveCache, useLive } from "../data/useLive";
 import { auth, database, googleProvider } from "../firebase/config";
 
 type UserDoc = { displayName?: string | null; email?: string | null; familyId?: string };
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ユーザー情報（家族 ID など）。ログインしていなければ読まない
   const { value: doc, loading: docLoading } = useLive<UserDoc | null>(
-    user?.uid ?? null,
+    user ? `user|${user.uid}` : null,
     (set) => onValue(ref(database, `users/${user?.uid}`), (s) => set(s.val())),
     null,
   );
@@ -59,7 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await ensureUserDoc(result.user);
   }, []);
 
-  const signOut = useCallback(() => fbSignOut(auth), []);
+  const signOut = useCallback(async () => {
+    await fbSignOut(auth);
+    // 次にログインする人に、前の人の記録を一瞬でも見せない
+    clearLiveCache();
+  }, []);
 
   const joinFamily = useCallback(
     async (familyId: string) => {

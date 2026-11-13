@@ -30,23 +30,25 @@ export function useExpensesInRange(start: Date, end: Date) {
   // Date は毎回作り直されるので、key には文字列を使う
   const from = start.toISOString();
   const to = end.toISOString();
-  const { value, loading } = useLive<Expense[]>(
-    familyId ? `${familyId}|${from}|${to}` : null,
+  const { value, loading, refreshing } = useLive<Expense[]>(
+    familyId ? `expenses|${familyId}|${from}|${to}` : null,
     (set) =>
       onValue(
         query(ref(database, `expenses/${familyId}`), orderByChild("date"), startAt(from), endAt(to)),
         (s) => set(toList<Expense>(s.val()).sort((a, b) => b.date.localeCompare(a.date))),
       ),
     EMPTY,
+    // 月や年を送ったとき、新しい期間の支出が届くまで前の期間の表示を残す（画面を崩さない）
+    { keepPrevious: true },
   );
-  return { expenses: value, loading };
+  return { expenses: value, loading, refreshing };
 }
 
 /** これまでに使ったカテゴリー（入力の候補に出す） */
 export function useCategories() {
   const { familyId } = useAuth();
   return useLive<string[]>(
-    familyId,
+    familyId ? `categories|${familyId}` : null,
     (set) => {
       const since = new Date();
       since.setFullYear(since.getFullYear() - 2);
@@ -70,7 +72,7 @@ export function useCategories() {
 export function useBudget() {
   const { familyId } = useAuth();
   const { value: monthlyBudget, loading: budgetLoading } = useLive<number>(
-    familyId,
+    familyId ? `budget|${familyId}` : null,
     (set) => onValue(ref(database, `budgets/${familyId}`), (s) => set(s.val()?.monthlyBudget || 0)),
     0,
   );
@@ -93,8 +95,12 @@ const normalizeFixed = (input: FixedCostInput) => ({
 /** 毎月の固定費のひな形と、その追加・変更・削除 */
 export function useFixedCosts() {
   const { familyId, user } = useAuth();
-  const { value: fixedCosts, loading } = useLive<FixedCost[]>(
-    familyId,
+  const {
+    value: fixedCosts,
+    loading,
+    fresh,
+  } = useLive<FixedCost[]>(
+    familyId ? `fixedCosts|${familyId}` : null,
     (set) =>
       onValue(ref(database, `fixedCosts/${familyId}`), (s) =>
         set(toList<FixedCost>(s.val()).sort((a, b) => a.dayOfMonth - b.dayOfMonth || b.amount - a.amount)),
@@ -148,7 +154,7 @@ export function useFixedCosts() {
     [familyId],
   );
 
-  return { fixedCosts, loading, add, change, remove: removeFixed };
+  return { fixedCosts, loading, fresh, add, change, remove: removeFixed };
 }
 
 /**
@@ -158,7 +164,8 @@ export function useFixedCosts() {
  */
 export function useFixedCostSync(onGenerated?: (count: number, names: string[]) => void) {
   const { familyId, user } = useAuth();
-  const { fixedCosts, loading } = useFixedCosts();
+  // 覚えていた古い一覧ではなく、いま届いた一覧で判断する（消した月を記録し直さないように）
+  const { fixedCosts, fresh } = useFixedCosts();
   const [month, setMonth] = useState(() => toMonthKey(new Date()));
   const running = useRef(false);
   const notify = useRef(onGenerated);
@@ -173,7 +180,7 @@ export function useFixedCostSync(onGenerated?: (count: number, names: string[]) 
   }, []);
 
   useEffect(() => {
-    if (!familyId || loading || running.current) return;
+    if (!familyId || !fresh || running.current) return;
     const updates: Record<string, unknown> = {};
     const names: string[] = [];
     let count = 0;
@@ -196,5 +203,5 @@ export function useFixedCostSync(onGenerated?: (count: number, names: string[]) 
       .finally(() => {
         running.current = false;
       });
-  }, [familyId, user, fixedCosts, loading, month]);
+  }, [familyId, user, fixedCosts, fresh, month]);
 }

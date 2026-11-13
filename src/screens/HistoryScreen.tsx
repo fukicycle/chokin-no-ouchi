@@ -7,6 +7,7 @@ import { usePeriod } from "../data/period";
 import type { Expense } from "../data/types";
 import { dayKey, formatYen, sumAmount, totalsByCategory } from "../lib/analytics";
 import { EmptyState } from "../ui/EmptyState";
+import { SkeletonLines } from "../ui/Skeleton";
 import { Choice } from "../ui/List";
 import { PeriodBar } from "../ui/PeriodBar";
 import { useHistoryFilter } from "./historyFilter";
@@ -46,7 +47,7 @@ export function ExpenseRow({
 
 export function HistoryScreen() {
   const period = usePeriod();
-  const { expenses, loading } = useExpensesInRange(period.start, period.end);
+  const { expenses, loading, refreshing } = useExpensesInRange(period.start, period.end);
   const { category, setCategory } = useHistoryFilter();
   const [sort, setSort] = useState<"date" | "amount">("date");
   const [selected, setSelected] = useState<Expense | null>(null);
@@ -66,7 +67,7 @@ export function HistoryScreen() {
   }, [filtered, sort]);
 
   return (
-    <div className="page">
+    <div className={refreshing ? "page is-refreshing" : "page"}>
       <PeriodBar />
 
       {expenses.length > 0 && (
@@ -100,7 +101,7 @@ export function HistoryScreen() {
       )}
 
       {loading ? (
-        <p className="hint">読み込んでいます…</p>
+        <SkeletonLines rows={8} />
       ) : filtered.length === 0 ? (
         <EmptyState
           title={
