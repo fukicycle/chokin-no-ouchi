@@ -1,4 +1,4 @@
-// ログイン前の画面。何ができるアプリかを一言で伝え、ログインのボタンだけを置く。
+// ログイン前の画面。Google でログインするボタンだけを、親指の届く画面の中ほどに置く。
 import { useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { Icon } from "../ui/Icon";
@@ -8,13 +8,9 @@ export function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (
-    <div className="page login">
-      <p className="login-title">家族の家計を、ひとつのおうちで。</p>
-      <p className="lead">
-        記録した支出は家族で共有されます。レシートの読み取り、固定費の自動記録、今月の使いすぎの見通しまで、ここでまとめて見られます。
-      </p>
+    <div className="login">
       <button
-        className="fk-button fk-button--primary fk-button--block"
+        className="fk-button fk-button--primary login-button"
         disabled={busy}
         onClick={async () => {
           setError(null);
@@ -31,7 +27,7 @@ export function LoginScreen() {
           }
         }}
       >
-        Google でログイン
+        {busy ? "ログインしています…" : "Google でログイン"}
       </button>
       {error && (
         <p className="status-error" role="alert">

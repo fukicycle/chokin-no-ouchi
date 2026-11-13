@@ -98,6 +98,11 @@
   line-height: 1.15;
   font-weight: 600;
   letter-spacing: 0.01em;
+  /* 合計の金額は差し色のグラデーションで（両端の色とも地に 4.5:1 以上） */
+  background: var(--app-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .hero-sub {
   margin: var(--fk-space-1) 0 0;
@@ -150,7 +155,7 @@
   inset: 3px auto 3px 3px;
   max-width: calc(100% - 6px);
   border-radius: var(--fk-radius-pill);
-  background: var(--fk-accent);
+  background: var(--app-gradient);
 }
 .meter-fill--over {
   background: var(--app-error);
@@ -220,7 +225,7 @@
   height: 100%;
   min-width: 4px;
   border-radius: var(--fk-radius-pill);
-  background: var(--fk-accent);
+  background: var(--app-gradient);
 }
 
 /* ---- 支出の一覧 ---- */
@@ -369,7 +374,32 @@
   font-variant-numeric: tabular-nums;
 }
 select.fk-input {
+  -webkit-appearance: none;
   appearance: none;
+}
+/* iPhone の Safari では日付欄が独自の幅を持ち、width や padding が効かずに画面からはみ出す。
+   見た目を標準のものから外し、幅を親に合わせ直す */
+input[type="date"].fk-input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  height: 48px;
+  line-height: 46px;
+  padding-block: 0;
+  text-align: left;
+}
+input[type="date"].fk-input::-webkit-date-and-time-value {
+  margin: 0;
+  text-align: left;
+}
+input[type="date"].fk-input::-webkit-datetime-edit {
+  padding: 0;
+}
+/* 欄の幅が中身に引っぱられないように */
+.field {
+  min-width: 0;
 }
 .form-submit {
   margin-top: var(--fk-space-6);
@@ -447,20 +477,19 @@ select.fk-input {
   font-weight: 600;
 }
 
-/* ---- ログイン ---- */
+/* ---- ログイン：ボタンだけを画面の中ほどに ---- */
 .login {
-  padding-top: clamp(32px, 12vh, 120px);
+  height: 100%;
   display: grid;
+  place-content: center;
+  justify-items: center;
   gap: var(--fk-space-4);
+  padding: env(safe-area-inset-top) var(--fk-space-4) env(safe-area-inset-bottom);
 }
-.login-title {
-  margin: 0;
-  word-break: auto-phrase;
-  text-wrap: balance;
-  font-family: var(--app-font-display);
-  font-size: 26px;
-  line-height: 1.5;
-  font-weight: 600;
+.login-button {
+  min-width: 260px;
+  min-height: 56px;
+  font-size: 16px;
 }
 
 /* ---- 分析 ---- */
@@ -647,4 +676,30 @@ select.fk-input {
 .selected-mark {
   color: var(--fk-accent);
   font-weight: 700;
+}
+
+/* ---- ガラスの札（GlassPanel）：画面でいちばん見てほしいまとまりだけ ---- */
+.panel {
+  margin: var(--fk-space-2) 0 var(--fk-space-4);
+}
+.panel > .fk-glass-in {
+  padding: var(--fk-space-4) var(--fk-space-4) var(--fk-space-3);
+}
+.summary .hero {
+  padding-top: 0;
+}
+.summary .block {
+  padding-bottom: var(--fk-space-1);
+}
+/* ガラスの中では凹凸を使わない（凹凸は地の一部）。受け皿は薄い面と細い線で */
+.panel .meter,
+.panel .bars-track {
+  background: color-mix(in srgb, var(--fk-ink) 8%, transparent);
+  box-shadow: inset 0 0 0 1px var(--fk-hair);
+}
+.legend-line--gradient {
+  height: 3px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--app-gradient);
 }

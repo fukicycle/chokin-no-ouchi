@@ -8,12 +8,15 @@ import "./app/app.css";
 import "./theme.css";
 import "./screens.css";
 import { router } from "./app/router";
+import { syncThemeColor } from "./app/themeColor";
 import { NotificationsProvider } from "./notifications/NotificationsProvider";
 import { FeedbackProvider } from "./ui/Feedback";
 import { UpdateProvider } from "./update/UpdateProvider";
 import { AuthProvider } from "./auth/AuthProvider";
 import { PeriodProvider } from "./data/period";
 import { HistoryFilterProvider } from "./screens/historyFilter";
+
+syncThemeColor();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

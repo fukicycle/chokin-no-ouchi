@@ -52,6 +52,13 @@ export function TrendChart({
           <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid stroke={colors.hair} vertical={false} />
             <XAxis dataKey="label" {...axis(colors)} interval="preserveStartEnd" />
+            {/* 支出の線は差し色のグラデーション（小判色→桜色） */}
+            <defs>
+              <linearGradient id="trend-stroke" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor={colors.accent} />
+                <stop offset="100%" stopColor={colors.accent2} />
+              </linearGradient>
+            </defs>
             <YAxis {...axis(colors)} width={44} tickFormatter={formatYenAxis} />
             <Tooltip
               {...tooltipStyle(colors)}
@@ -73,7 +80,7 @@ export function TrendChart({
             <Line
               type="monotone"
               dataKey="total"
-              stroke={colors.accent}
+              stroke="url(#trend-stroke)"
               strokeWidth={2.5}
               dot={{ r: 4, fill: colors.accent, stroke: colors.ground, strokeWidth: 2 }}
               activeDot={{ r: 6, stroke: colors.ground, strokeWidth: 2 }}
@@ -84,7 +91,7 @@ export function TrendChart({
       </div>
       <figcaption className="legend">
         <span className="legend-item">
-          <span className="legend-line" style={{ borderColor: colors.accent, borderTopStyle: "solid" }} />
+          <span className="legend-line legend-line--gradient" />
           支出
         </span>
         {budget > 0 && (
@@ -125,7 +132,13 @@ export function WeekdayChart({
               labelFormatter={(l) => `${l}曜日`}
               formatter={(v) => [formatYen(Number(v)), "1日平均"]}
             />
-            <Bar dataKey="average" fill={colors.accent} radius={[4, 4, 0, 0]} maxBarSize={26} />
+            <defs>
+              <linearGradient id="weekday-fill" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stopColor={colors.accent} />
+                <stop offset="100%" stopColor={colors.accent2} />
+              </linearGradient>
+            </defs>
+            <Bar dataKey="average" fill="url(#weekday-fill)" radius={[4, 4, 0, 0]} maxBarSize={26} />
           </BarChart>
         </ResponsiveContainer>
       </div>

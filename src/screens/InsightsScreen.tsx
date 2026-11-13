@@ -24,6 +24,7 @@ import {
 } from "../lib/analytics";
 import { addMonths, monthProgress, toMonthKey } from "../lib/months";
 import { Bars } from "../ui/Bars";
+import { GlassPanel } from "../ui/GlassPanel";
 import { Meter } from "../ui/Meter";
 import { PeriodBar } from "../ui/PeriodBar";
 import { useThemeColors } from "../ui/useThemeColors";
@@ -36,7 +37,16 @@ const pct = (cur: number, base: number) => {
   return `${p > 0 ? "+" : ""}${p}%`;
 };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, glass, children }: { title: string; glass?: boolean; children: React.ReactNode }) {
+  // 一番上（予算）だけガラスの札に乗せ、ほかは地に直接置いて溝で区切る
+  if (glass) {
+    return (
+      <GlassPanel className="summary">
+        <h2 className="block-title">{title}</h2>
+        {children}
+      </GlassPanel>
+    );
+  }
   return (
     <section className="insight">
       <h2 className="block-title">{title}</h2>
@@ -165,7 +175,7 @@ export function InsightsScreen() {
     <div className="page">
       <PeriodBar />
 
-      <Section title="予算">
+      <Section title="予算" glass>
         {budget > 0 ? (
           <>
             <div className="stats">

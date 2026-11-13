@@ -1,7 +1,10 @@
 // 下から出るシート。中身を読んで、親指の届く下側で操作できるようにする。
 // 閉じるボタンは右上。背景を押しても、Escape でも閉じる。
 // 引っぱって閉じる操作は入れていないので、つまみ（ハンドル）も描かない。
+// 画面のどこから開いても、タブバーやトップバーより手前に出るよう body の直下に描く
+// （中身の領域の中に描くと、iPhone の Safari ではタブバーの下に潜って下のボタンが押せなくなる）。
 import { useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "./Icon";
 
 type Props = { open: boolean; title: string; onClose: () => void; children: ReactNode };
@@ -18,7 +21,7 @@ export function Sheet({ open, title, onClose, children }: Props) {
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
+  return createPortal(
     <div className="scrim scrim--bottom" onClick={onClose}>
       <div
         ref={panel}
@@ -40,6 +43,7 @@ export function Sheet({ open, title, onClose, children }: Props) {
           <div className="sheet-body fk-scroll">{children}</div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

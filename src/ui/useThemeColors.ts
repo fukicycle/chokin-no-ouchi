@@ -9,6 +9,7 @@ const read = () => {
     ink: v("--fk-ink"),
     muted: v("--app-ink-muted"),
     accent: v("--fk-accent"),
+    accent2: v("--app-accent-2"),
     hair: v("--fk-hair"),
     ground: v("--fk-ground-1"),
     error: v("--app-error"),

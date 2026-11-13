@@ -72,30 +72,23 @@ body {
 }
 
 .topbar {
-  flex: none;
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + var(--fk-space-2));
+  left: var(--fk-space-3);
+  right: var(--fk-space-3);
+  z-index: 20;
+  max-width: 600px;
+  margin-inline: auto;
+}
+.topbar > .fk-glass-in {
   display: flex;
   align-items: center;
-  gap: var(--fk-space-2);
-  min-height: 60px;
-  padding: calc(env(safe-area-inset-top) + var(--fk-space-2)) var(--fk-space-4) var(--fk-space-2);
-  position: relative;
+  gap: var(--fk-space-1);
+  min-height: 56px;
+  padding: var(--fk-space-1) var(--fk-space-1) var(--fk-space-1) var(--fk-space-4);
 }
-/* 中身が動いたら、トップバーとの境に溝を出す */
-.topbar::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  background:
-    linear-gradient(var(--fk-shade), var(--fk-shade)) top / 100% 1px no-repeat,
-    linear-gradient(var(--fk-light), var(--fk-light)) bottom / 100% 1px no-repeat;
-}
-.topbar.is-scrolled::after {
-  opacity: 1;
+.topbar .fk-icon-button + .topbar-title {
+  margin-left: calc(var(--fk-space-3) * -1);
 }
 .topbar-title {
   flex: 1;
@@ -117,7 +110,6 @@ body {
 }
 .topbar-actions {
   display: flex;
-  gap: var(--fk-space-3);
 }
 
 .notify-button {
@@ -137,7 +129,8 @@ body {
 
 .shell-main {
   flex: 1;
-  padding: var(--fk-space-2) var(--fk-space-4) calc(var(--app-bottom-edge) + 112px);
+  /* 上は浮いたトップバーの分だけ空ける（中身はその下を流れる） */
+  padding: calc(env(safe-area-inset-top) + 80px) var(--fk-space-4) calc(var(--app-bottom-edge) + 112px);
 }
 
 .page {
@@ -199,7 +192,8 @@ body {
   padding: 0 var(--fk-space-6) 0 var(--fk-space-4);
   border: 0;
   border-radius: var(--fk-radius-pill);
-  background: var(--fk-accent);
+  /* 主ボタンは差し色のグラデーション（一画面に一つ） */
+  background: var(--app-gradient);
   color: var(--fk-on-accent);
   font: inherit;
   font-size: 15px;
@@ -212,7 +206,7 @@ body {
   transition: bottom 0.2s ease;
 }
 .fab:active {
-  background: color-mix(in oklab, var(--fk-accent) 85%, var(--fk-ink));
+  background: linear-gradient(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--app-gradient);
   box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.25);
 }
 .fab--icon {
@@ -222,6 +216,18 @@ body {
 }
 
 /* ---- ボタン（design の .fk-button に足す修飾） ---- */
+/* 主なボタン（一画面に一つ）は、右下の主ボタンと同じ差し色のグラデーション */
+.fk-button--primary {
+  background: var(--app-gradient);
+}
+.fk-button--primary:active {
+  background: linear-gradient(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--app-gradient);
+}
+@media (hover: hover) {
+  .fk-button--primary:hover {
+    background: linear-gradient(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.06)), var(--app-gradient);
+  }
+}
 .fk-button--block {
   width: 100%;
 }
@@ -321,7 +327,9 @@ body {
 }
 .sheet > .fk-glass-bd,
 .dialog > .fk-glass-bd {
-  background: color-mix(in oklab, var(--fk-ground) 90%, transparent);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1)),
+    color-mix(in oklab, var(--fk-ground) 66%, transparent);
 }
 
 .sheet {
@@ -719,6 +727,31 @@ body {
 }
 
 /* タブバーの下を中身が流れても、タブの文字が読めるように面を濃くする */
+/* トップバー・タブバー：下を流れる中身の色が透けるように面は薄く。
+   文字が重なっても読めるよう、design のガラスより少しだけ地の色を足す */
+.topbar > .fk-glass-bd,
 .tabbar > .fk-glass-bd {
-  background: color-mix(in oklab, var(--fk-ground) 78%, transparent);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08)),
+    color-mix(in oklab, var(--fk-ground) 42%, transparent);
+}
+
+/* 夜は面の白い光を弱める（design のガラスと同じ考え方） */
+:root[data-theme="dark"] .topbar > .fk-glass-bd,
+:root[data-theme="dark"] .tabbar > .fk-glass-bd,
+:root[data-theme="dark"] .sheet > .fk-glass-bd,
+:root[data-theme="dark"] .dialog > .fk-glass-bd {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
+    color-mix(in oklab, var(--fk-ground) 62%, transparent);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .topbar > .fk-glass-bd,
+  :root:not([data-theme]) .tabbar > .fk-glass-bd,
+  :root:not([data-theme]) .sheet > .fk-glass-bd,
+  :root:not([data-theme]) .dialog > .fk-glass-bd {
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
+      color-mix(in oklab, var(--fk-ground) 62%, transparent);
+  }
 }
