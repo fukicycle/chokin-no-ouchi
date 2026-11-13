@@ -1,0 +1,650 @@
+/*
+  貯金のおうちの画面の見た目。色・余白は --fk-* と theme.css の --app-* だけを使う。
+  本文は地に直接置く（カードで囲まない）。沈める＝受け皿・選んでいるもの、浮かせる＝押せるもの。
+*/
+
+.num,
+.hero-amount,
+.stat-value,
+.expense-amount,
+.bars-value,
+.day-total,
+.detail-amount,
+.filters-total {
+  font-variant-numeric: tabular-nums;
+}
+.muted {
+  color: var(--app-ink-muted);
+}
+.lead {
+  margin: var(--fk-space-2) 0 var(--fk-space-4);
+  font-size: 14px;
+  line-height: 23px;
+}
+.hint {
+  margin: var(--fk-space-2) 0 0;
+  font-size: 13px;
+  line-height: 21px;
+  color: var(--app-ink-muted);
+}
+.hint strong {
+  color: var(--fk-ink);
+  font-variant-numeric: tabular-nums;
+}
+.status-error,
+.status-ok {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--fk-space-1);
+  font-size: 13px;
+  line-height: 20px;
+}
+.status-error {
+  color: var(--app-error);
+  font-weight: 700;
+}
+.status-ok {
+  color: var(--fk-ink);
+}
+.tag {
+  margin-left: var(--fk-space-2);
+  padding: 0 var(--fk-space-2);
+  border-radius: var(--fk-radius-pill);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--app-ink-muted);
+  box-shadow:
+    inset 1px 1px 3px var(--fk-shade),
+    inset -1px -1px 3px var(--fk-light);
+}
+
+/* ---- 期間の切り替え ---- */
+.period {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fk-space-2);
+  margin: 0 calc(var(--fk-space-2) * -1) var(--fk-space-2);
+}
+.period-nav {
+  display: flex;
+  align-items: center;
+}
+.period-label {
+  min-width: 7.5em;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.fk-icon-button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ---- ホーム：合計の数字を一番大きく ---- */
+.hero {
+  padding: var(--fk-space-4) 0 var(--fk-space-2);
+}
+.hero-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--app-ink-muted);
+}
+.hero-amount {
+  margin: 0;
+  font-family: var(--app-font-display);
+  font-size: clamp(40px, 12vw, 52px);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.hero-sub {
+  margin: var(--fk-space-1) 0 0;
+  font-size: 13px;
+  color: var(--app-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.block {
+  padding: var(--fk-space-4) 0;
+}
+.block-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--fk-space-3);
+  margin-bottom: var(--fk-space-2);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.block-title {
+  margin: 0 0 var(--fk-space-3);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--app-ink-muted);
+}
+.sub-title {
+  margin: var(--fk-space-6) 0 var(--fk-space-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+.fk-groove {
+  margin: var(--fk-space-2) 0;
+}
+
+/* ---- 割合の受け皿（沈んだ溝に差し色が満ちる） ---- */
+.meter {
+  position: relative;
+  height: 14px;
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-dent);
+  box-shadow:
+    inset 3px 3px 7px var(--fk-shade),
+    inset -3px -3px 7px var(--fk-light);
+  overflow: hidden;
+}
+.meter-fill {
+  position: absolute;
+  inset: 3px auto 3px 3px;
+  max-width: calc(100% - 6px);
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-accent);
+}
+.meter-fill--over {
+  background: var(--app-error);
+}
+
+/* ---- 金額の横棒 ---- */
+.bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--fk-space-1);
+}
+.bars-item {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  padding: var(--fk-space-2) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.bars-item--link {
+  cursor: pointer;
+  border-radius: var(--fk-radius-xs);
+}
+.bars-item--link:active {
+  background: var(--app-accent-soft);
+}
+.bars-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--fk-space-3);
+  font-size: 14px;
+}
+.bars-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bars-value {
+  flex: none;
+  font-weight: 700;
+}
+.bars-note {
+  display: inline-block;
+  min-width: 3em;
+  margin-left: var(--fk-space-2);
+  text-align: right;
+  font-weight: 400;
+  color: var(--app-ink-muted);
+}
+.bars-track {
+  display: block;
+  height: 8px;
+  border-radius: var(--fk-radius-pill);
+  box-shadow:
+    inset 2px 2px 4px var(--fk-shade),
+    inset -2px -2px 4px var(--fk-light);
+  overflow: hidden;
+}
+.bars-fill {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-accent);
+}
+
+/* ---- 支出の一覧 ---- */
+.expense-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.expense-list > li + li {
+  background:
+    linear-gradient(var(--fk-shade), var(--fk-shade)) top / 100% 1px no-repeat,
+    linear-gradient(var(--fk-light), var(--fk-light)) 0 1px / 100% 1px no-repeat;
+}
+.expense-row {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-3);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--fk-space-2) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.expense-row:active {
+  background: var(--app-accent-soft);
+}
+.expense-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.expense-category {
+  font-size: 15px;
+  line-height: 22px;
+}
+.expense-desc {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--app-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.expense-amount {
+  flex: none;
+  font-weight: 700;
+}
+
+/* 履歴：日ごとのまとまり */
+.day {
+  padding-top: var(--fk-space-4);
+}
+.day-head {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--app-ink-muted);
+}
+
+/* 絞り込み・並び替え */
+.filters {
+  display: grid;
+  gap: var(--fk-space-2);
+  margin-bottom: var(--fk-space-2);
+}
+.filters-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fk-space-2);
+}
+.filters-total {
+  font-size: 13px;
+  color: var(--app-ink-muted);
+}
+
+/* 選択肢のチップ：浮いていて、選んだものは沈んで差し色 */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fk-space-2);
+  margin-top: var(--fk-space-3);
+}
+.chips--scroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 0 calc(var(--fk-space-4) * -1);
+  padding: var(--fk-space-2) var(--fk-space-4) var(--fk-space-3);
+  scrollbar-width: none;
+}
+.chips--scroll::-webkit-scrollbar {
+  display: none;
+}
+.chip {
+  flex: none;
+  min-height: 36px;
+  padding: 0 var(--fk-space-4);
+  border: 0;
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-sheen);
+  box-shadow:
+    3px 3px 7px var(--fk-shade),
+    -3px -3px 7px var(--fk-light);
+  color: var(--fk-ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.chip[aria-pressed="true"] {
+  background: var(--fk-dent);
+  box-shadow:
+    inset 2px 2px 6px var(--fk-shade),
+    inset -2px -2px 6px var(--fk-light);
+  color: var(--fk-accent);
+  font-weight: 700;
+}
+
+/* ---- 入力 ---- */
+.form {
+  display: grid;
+  gap: var(--fk-space-4);
+}
+.field {
+  display: grid;
+  gap: var(--fk-space-1);
+}
+.field-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--app-ink-muted);
+}
+.fk-input {
+  font-size: 16px; /* iPhone で拡大されないように */
+}
+.field-amount {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+select.fk-input {
+  appearance: none;
+}
+.form-submit {
+  margin-top: var(--fk-space-6);
+}
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--fk-space-3);
+}
+.sheet-switch {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--fk-space-4);
+}
+
+/* ---- レシート ---- */
+.receipt-pick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--fk-space-3);
+}
+.receipt-pick .fk-button {
+  cursor: pointer;
+}
+.receipt-list {
+  list-style: none;
+  margin: var(--fk-space-4) 0 0;
+  padding: 0;
+}
+.receipt-item {
+  display: grid;
+  gap: var(--fk-space-3);
+  padding: var(--fk-space-4) 0;
+}
+.receipt-item + .receipt-item {
+  background:
+    linear-gradient(var(--fk-shade), var(--fk-shade)) top / 100% 1px no-repeat,
+    linear-gradient(var(--fk-light), var(--fk-light)) 0 1px / 100% 1px no-repeat;
+}
+.receipt-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fk-space-3);
+}
+.receipt-thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--fk-radius-field);
+}
+.receipt-status {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 20px;
+}
+.receipt-actions {
+  display: flex;
+  align-items: center;
+}
+
+/* ---- 支出の詳細 ---- */
+.detail-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--fk-space-2) 0 var(--fk-space-4);
+}
+.detail-amount {
+  font-family: var(--app-font-display);
+  font-size: 34px;
+  font-weight: 600;
+}
+
+/* ---- ログイン ---- */
+.login {
+  padding-top: clamp(32px, 12vh, 120px);
+  display: grid;
+  gap: var(--fk-space-4);
+}
+.login-title {
+  margin: 0;
+  word-break: auto-phrase;
+  text-wrap: balance;
+  font-family: var(--app-font-display);
+  font-size: 26px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+/* ---- 分析 ---- */
+.insight {
+  padding: var(--fk-space-6) 0;
+}
+.insight + .insight {
+  background:
+    linear-gradient(var(--fk-shade), var(--fk-shade)) top / 100% 1px no-repeat,
+    linear-gradient(var(--fk-light), var(--fk-light)) 0 1px / 100% 1px no-repeat;
+}
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--fk-space-4);
+  margin-bottom: var(--fk-space-4);
+}
+.stat {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--app-ink-muted);
+}
+.stat-value {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 700;
+}
+.stat-sub {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--app-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.moves {
+  margin-top: var(--fk-space-4);
+}
+.moves-list {
+  list-style: none;
+  margin: var(--fk-space-1) 0 0;
+  padding: 0;
+}
+.moves-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--fk-space-3);
+  padding: 6px 0;
+  font-size: 14px;
+}
+.moves-list li + li {
+  background: linear-gradient(var(--fk-hair), var(--fk-hair)) top / 100% 1px no-repeat;
+}
+.moves-list .muted {
+  font-size: 12px;
+}
+
+.chart {
+  margin: 0;
+}
+.chart-plot {
+  margin-left: calc(var(--fk-space-2) * -1);
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--fk-space-1) var(--fk-space-4);
+  margin-top: var(--fk-space-2);
+  font-size: 12px;
+  color: var(--app-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-line {
+  display: inline-block;
+  width: 18px;
+  border-top-width: 2px;
+}
+
+/* 日別カレンダー：差し色1色の濃淡 */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+.calendar-weekday {
+  font-size: 11px;
+  color: var(--app-ink-muted);
+}
+.calendar-day {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fk-ink);
+  cursor: pointer;
+}
+.calendar-day[aria-pressed="true"] {
+  outline: 2px solid var(--fk-ink);
+  outline-offset: 1px;
+}
+.lv0 {
+  background: var(--fk-dent);
+  box-shadow:
+    inset 2px 2px 4px var(--fk-shade),
+    inset -2px -2px 4px var(--fk-light);
+  color: var(--app-ink-muted);
+}
+.lv1 {
+  background: color-mix(in oklab, var(--fk-accent) 22%, var(--fk-ground));
+}
+.lv2 {
+  background: color-mix(in oklab, var(--fk-accent) 45%, var(--fk-ground));
+}
+.lv3 {
+  background: color-mix(in oklab, var(--fk-accent) 72%, var(--fk-ground));
+  color: var(--fk-on-accent);
+}
+.lv4 {
+  background: var(--fk-accent);
+  color: var(--fk-on-accent);
+  font-weight: 700;
+}
+.lv-future {
+  background: none;
+  color: var(--app-ink-muted);
+  opacity: 0.45;
+  cursor: default;
+}
+.calendar-scale {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: var(--fk-space-2);
+  font-size: 11px;
+  color: var(--app-ink-muted);
+}
+.calendar-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.calendar-detail {
+  margin-top: var(--fk-space-3);
+}
+.calendar-detail-head {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font-weight: 700;
+}
+.calendar-items {
+  list-style: none;
+  margin: var(--fk-space-1) 0 0;
+  padding: 0;
+  font-size: 13px;
+  color: var(--app-ink-muted);
+}
+.calendar-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--fk-space-3);
+  padding: 2px 0;
+}
+
+/* ---- 設定 ---- */
+.family-id {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  user-select: all;
+}
+.selected-mark {
+  color: var(--fk-accent);
+  font-weight: 700;
+}

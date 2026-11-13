@@ -1,0 +1,26 @@
+{
+  "name": "fukicycle app",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
+  "remoteUser": "node",
+  "mounts": ["source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached"],
+  "forwardPorts": [5173, 4173, 8787],
+  "portsAttributes": {
+    "5173": { "label": "開発サーバー", "onAutoForward": "openBrowser" },
+    "4173": { "label": "ビルド後の確認" },
+    "8787": { "label": "Wrangler" }
+  },
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "anthropic.claude-code"],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  }
+}
