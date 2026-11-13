@@ -21,6 +21,13 @@
   --app-vh: 100dvh;
   --ios-bottom-shim: 0px;
 }
+/* 地のグラデーションは body 自身に描く。html に背景が無いと、body の背景は画面全体（キャンバス）へ
+   移されて「伸ばす前の短い画面」の大きさで描かれ、伸ばした下端でグラデーションが最初から
+   繰り返して段差になる（iPhone のホーム画面から開いたとき）。html に地の2色目を塗っておくと、
+   body の背景は body の大きさ（伸ばした高さ）のまま描かれる */
+html {
+  background: var(--fk-ground-2);
+}
 body {
   height: calc(var(--app-vh) + var(--ios-bottom-shim));
   /* シート・ダイアログ（body の直下に描く）を、伸ばした body の下端まで届かせる基準にする */
