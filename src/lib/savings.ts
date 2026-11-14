@@ -4,6 +4,10 @@
 //   使えるお金 = 手取り − 貯めたい額
 //   その月に貯まった額 = 手取り − 使った額（使えるお金が余れば目標より多く、使いすぎれば少なくなる）
 //
+// 特別費（isSpecial。車検・結婚式など）は、ふだんの暮らしの外の出費なので
+//   ・「使えるお金」「今日あといくら」「その月の貯金が守れたか」には数えない（入れると、その月の数字が意味をなさなくなる）
+//   ・これまでに貯まったお金からは引く（実際に手元から出ていったお金なので、ここは正直に減らす）
+//
 // 計画は budgets/{familyId}/plans/{YYYY-MM} に「その月から有効」として残す。
 // 手取りや目標を変えても、前の月までの結果は変わらない。いちばん古い計画の月から数え始める。
 import type { Expense } from "../data/types";
@@ -57,6 +61,12 @@ export const monthResult = (plan: Plan, spent: number): MonthResult => {
 export const sumAmount = (expenses: Pick<Expense, "amount">[]) =>
   expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
 
+type Flagged = Pick<Expense, "amount" | "isSpecial">;
+/** ふだんの支出の合計（特別費を除く） */
+export const sumNormal = (expenses: Flagged[]) => sumAmount(expenses.filter((e) => !e.isSpecial));
+/** 特別費の合計 */
+export const sumSpecial = (expenses: Flagged[]) => sumAmount(expenses.filter((e) => e.isSpecial));
+
 export type TodayAllowance = {
   /** 月末までの日数（今日を含む） */
   daysLeft: number;
@@ -78,9 +88,10 @@ export type TodayAllowance = {
  */
 export const todayAllowance = (
   budget: number,
-  monthExpenses: Pick<Expense, "amount" | "date" | "isFixed">[],
+  allMonthExpenses: Pick<Expense, "amount" | "date" | "isFixed" | "isSpecial">[],
   today = new Date(),
 ): TodayAllowance => {
+  const monthExpenses = allMonthExpenses.filter((e) => !e.isSpecial);
   const key = dayKey(today);
   const daysLeft = daysInMonth(today.getFullYear(), today.getMonth() + 1) - today.getDate() + 1;
   const spent = sumAmount(monthExpenses);
@@ -99,33 +110,69 @@ export const todayAllowance = (
   };
 };
 
-export type JourneyMonth = { month: MonthKey; plan: Plan; result: MonthResult; closed: boolean };
+export type JourneyMonth = {
+  month: MonthKey;
+  plan: Plan;
+  /** ふだんの支出での結果（特別費は数えない） */
+  result: MonthResult;
+  /** その月の特別費 */
+  special: number;
+  /** 締まった月（先月まで） */
+  closed: boolean;
+};
 
-/** 数え始めの月から今月までの、月ごとの結果（新しい順）。closed は締まった月（先月まで） */
-export const journey = (
-  plans: Plans,
-  expenses: Pick<Expense, "amount" | "date">[],
-  today = new Date(),
-): JourneyMonth[] => {
-  const first = startMonth(plans);
-  if (!first) return [];
-  const spentByMonth = new Map<MonthKey, number>();
+type Dated = Pick<Expense, "amount" | "date" | "isSpecial">;
+
+const byMonth = (expenses: Dated[]) => {
+  const normal = new Map<MonthKey, number>();
+  const special = new Map<MonthKey, number>();
   for (const e of expenses) {
     const m = toMonthKey(new Date(e.date));
-    spentByMonth.set(m, (spentByMonth.get(m) ?? 0) + (Number(e.amount) || 0));
+    const into = e.isSpecial ? special : normal;
+    into.set(m, (into.get(m) ?? 0) + (Number(e.amount) || 0));
   }
+  return { normal, special };
+};
+
+/** 数え始めの月から今月までの、月ごとの結果（新しい順） */
+export const journey = (plans: Plans, expenses: Dated[], today = new Date()): JourneyMonth[] => {
+  const first = startMonth(plans);
+  if (!first) return [];
+  const { normal, special } = byMonth(expenses);
   const current = toMonthKey(today);
   const months: JourneyMonth[] = [];
   for (let m = first; m <= current; m = addMonths(m, 1)) {
     const plan = planFor(plans, m)!;
-    months.push({ month: m, plan, result: monthResult(plan, spentByMonth.get(m) ?? 0), closed: m < current });
+    months.push({
+      month: m,
+      plan,
+      result: monthResult(plan, normal.get(m) ?? 0),
+      special: special.get(m) ?? 0,
+      closed: m < current,
+    });
   }
   return months.reverse();
 };
 
-/** これまでに貯まった額（締まった月だけ） */
+/** これまでに貯まった額（締まった月だけ）。特別費は、出た分だけ引く */
 export const totalSaved = (months: JourneyMonth[]) =>
-  months.filter((m) => m.closed).reduce((s, m) => s + m.result.saved, 0);
+  months.filter((m) => m.closed).reduce((s, m) => s + m.result.saved - m.special, 0);
+
+/** これまでの特別費（締まった月だけ） */
+export const totalSpecial = (months: JourneyMonth[]) =>
+  months.filter((m) => m.closed).reduce((s, m) => s + m.special, 0);
+
+export type TrendMonth = { month: MonthKey; normal: number; special: number };
+
+/** 使ったお金の推移。今月までの count ヶ月（古い順）。計画を立てる前の月も含む */
+export const spendingTrend = (expenses: Dated[], count = 12, today = new Date()): TrendMonth[] => {
+  const { normal, special } = byMonth(expenses);
+  const current = toMonthKey(today);
+  return Array.from({ length: count }, (_, i) => {
+    const month = addMonths(current, i - (count - 1));
+    return { month, normal: normal.get(month) ?? 0, special: special.get(month) ?? 0 };
+  });
+};
 
 export const monthStart = (month: MonthKey) => {
   const { year, month: m } = parseMonthKey(month);

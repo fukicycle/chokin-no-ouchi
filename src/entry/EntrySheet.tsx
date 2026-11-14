@@ -6,6 +6,8 @@
 // - カテゴリーはよく使う順に並べて、押すだけ。新しい名前を足すときだけ文字を打つ
 // - 使った日は「今日」が最初から入っている。別の日にしたいときだけ押す。メモは打たなくてよい
 // - ［記録する］はいちばん下（テンキーのすぐ下）。金額とカテゴリーがそろうまで押せない
+// - 特別費（車検・結婚式など）は、日付の隣の切り替え。めったに使わないので小さく、ただし打ち終える前に目に入る所。
+//   入れるとメモの欄の例が変わり、何のための印かが分かる
 // - レシートを撮る人は最初にそう決めているので、カメラは金額の左（打ち始める前に目に入る所）
 // - 削除はいちばん下に離して置き、確認を挟む。消したあとも［元に戻す］で戻せる
 import { useEffect, useState } from "react";
@@ -79,6 +81,7 @@ function EntryForm({
   const [date, setDate] = useState(expense ? isoToDateInput(expense.date) : todayInput());
   const [memo, setMemo] = useState(expense?.description ?? "");
   const [naming, setNaming] = useState(false);
+  const [special, setSpecial] = useState(Boolean(expense?.isSpecial));
 
   // よく使う順。足りない分は最初の候補で埋める。選んでいるものは必ず並べる
   const categories = [...used, ...STARTER_CATEGORIES.filter((c) => !used.includes(c))];
@@ -96,7 +99,8 @@ function EntryForm({
       date: dateInputToIso(date),
     };
     if (expense) {
-      void updateExpense(familyId, expense.id, input);
+      // null を書くと、その印は消える
+      void updateExpense(familyId, expense.id, { ...input, isSpecial: special ? true : null });
       onClose();
       toast({
         message: "直しました",
@@ -105,10 +109,14 @@ function EntryForm({
       });
     } else {
       // 書き込みを待たずに閉じる（電波の弱い所でも待たせない。届いたら一覧と数字に入る）
-      const created = addExpense(familyId, { ...input, userId: user?.uid ?? null });
+      const created = addExpense(familyId, {
+        ...input,
+        userId: user?.uid ?? null,
+        ...(special ? { isSpecial: true } : {}),
+      });
       onClose();
       toast({
-        message: `${input.category} ${formatYen(value)} を記録しました`,
+        message: `${input.category} ${formatYen(value)} を${special ? "特別費として" : ""}記録しました`,
         actionLabel: "元に戻す",
         onAction: () => created.key && removeExpense(familyId, created.key),
       });
@@ -212,11 +220,19 @@ function EntryForm({
             onChange={(e) => e.target.value && setDate(e.target.value)}
           />
         </label>
+        <button
+          className="chip entry-special"
+          aria-pressed={special}
+          title="車検・結婚式など、ふだんの暮らしの外の出費。使えるお金には数えません"
+          onClick={() => setSpecial(!special)}
+        >
+          特別費
+        </button>
         <input
           className="fk-input entry-memo"
           value={memo}
           onChange={(e) => setMemo(e.target.value)}
-          placeholder="メモ（なくてもよい）"
+          placeholder={special ? "車検・結婚式など" : "メモ"}
           aria-label="メモ"
           enterKeyHint="done"
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}

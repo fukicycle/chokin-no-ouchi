@@ -183,7 +183,12 @@ function Shell() {
                 // 今いるタブをもう一度押したら、一番上へ戻る
                 onClick={() => {
                   if (t.path !== location.pathname) return;
-                  document.querySelector(`[data-pane="${t.path}"]`)?.scrollTo({ top: 0, behavior: "smooth" });
+                  const pane = document.querySelector(`[data-pane="${t.path}"]`);
+                  // 中に自前のスクロール領域を持つ画面（きろく）は、そちらを戻す
+                  (pane?.querySelector("[data-scroll-top]") ?? pane)?.scrollTo({
+                    top: 0,
+                    behavior: "smooth",
+                  });
                 }}
               >
                 {({ isActive }) => (

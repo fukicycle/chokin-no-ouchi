@@ -4,11 +4,13 @@
 // - まとめの札（ガラスは一画面にこの一枚）：今月の貯金。先に取り分けた額が、いま守れているか。
 //   帯は手取りの行き先。左から「つかった」が伸び、右端に「ちょきん」が待っている。
 //   使いすぎると「つかった」が「ちょきん」に食い込む（その分だけ色が変わり、上の数字が減る）
+// - 特別費（車検・結婚式など）は帯にも数字にも数えない。あった月だけ、札の下に一行で知らせる
 // - 今日つかえるお金：買う前にここを見る。札のすぐ下、スクロールしなくても見える所に、数字を大きく
 // - 今日のきろく：いま入れた記録が入ったか確かめる所。行を押すと直せる
 // - 記録するボタンは右下（AppShell）。この画面に主ボタンは足さない
 import { useNavigate } from "react-router";
 import { useExpensesInRange } from "../data/hooks";
+import type { Expense } from "../data/types";
 import { usePlans } from "../data/plan";
 import { dayKey, formatYen } from "../lib/format";
 import { monthRange, parseMonthKey } from "../lib/months";
@@ -17,6 +19,8 @@ import {
   monthResult,
   planFor,
   sumAmount,
+  sumNormal,
+  sumSpecial,
   todayAllowance,
   type MonthResult,
   type Plan,
@@ -38,13 +42,15 @@ export function HomeScreen() {
 
   const loading = expensesLoading || plansLoading;
   const plan = planFor(plans, month);
-  const spent = sumAmount(expenses);
+  // 特別費は「使えるお金」に数えない
+  const spent = sumNormal(expenses);
+  const special = sumSpecial(expenses);
   const todays = expenses.filter((e) => dayKey(new Date(e.date)) === todayKey && !e.isFixed);
 
   return (
     <div className="page home">
       {loading || plan ? (
-        <Summary month={m} plan={plan} result={plan ? monthResult(plan, spent) : null} />
+        <Summary month={m} plan={plan} result={plan ? monthResult(plan, spent) : null} special={special} />
       ) : (
         <section className="summary fk-glass" aria-label="貯金の計画">
           <div className="fk-glass-bd" />
@@ -92,7 +98,17 @@ export function HomeScreen() {
   );
 }
 
-function Summary({ month, plan, result }: { month: number; plan: Plan | null; result: MonthResult | null }) {
+function Summary({
+  month,
+  plan,
+  result,
+  special,
+}: {
+  month: number;
+  plan: Plan | null;
+  result: MonthResult | null;
+  special: number;
+}) {
   const waiting = !plan || !result;
   const over = result?.over ?? 0;
   return (
@@ -126,6 +142,9 @@ function Summary({ month, plan, result }: { month: number; plan: Plan | null; re
         </p>
 
         <Flow plan={plan} result={result} />
+        {special > 0 && (
+          <p className="summary-special">ほかに特別費 {formatYen(special)}（ここには数えていません）</p>
+        )}
       </div>
     </section>
   );
@@ -194,14 +213,14 @@ function Today({
   loading,
 }: {
   plan: Plan | null;
-  expenses: Parameters<typeof todayAllowance>[1];
+  expenses: Expense[];
   today: Date;
   loading: boolean;
 }) {
   const budget = plan ? budgetOf(plan) : 0;
   const a = todayAllowance(budget, expenses, today);
   const waiting = loading || !plan;
-  const usedUp = sumAmount(expenses) >= budget;
+  const usedUp = sumNormal(expenses) >= budget;
   return (
     <>
       <p className="today-amount">

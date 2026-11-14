@@ -3,6 +3,9 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { toMonthKey, type MonthKey } from "../lib/months";
 
+/** 「特別費だけ」に絞る印（カテゴリーの名前とぶつからない値） */
+export const SPECIAL = "\u0000special";
+
 type View = {
   month: MonthKey;
   category: string | null;
