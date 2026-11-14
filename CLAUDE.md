@@ -12,19 +12,20 @@
 - **一番よく行う操作**：支出を記録する（→ タブの画面ではいつも右下の［記録する］。`AppShell` に一つだけ置く）
 - **公開先**：https://chokin.kotli-sharp.jp（Cloudflare Workers のカスタムドメイン。`wrangler.jsonc`）
 - **扱うデータと保存先**：Firebase Realtime Database（v1・v2 と同じプロジェクト・同じ場所）。`users/{uid}`（家族 ID・通知の購読）、`expenses/{familyId}`、`fixedCosts/{familyId}`、`budgets/{familyId}`。ルールは `database.rules.json`。Gemini の API キーとモデルは端末（localStorage）だけ
-  - **既存の場所の形は変えない。** v3 で足したのは `budgets/{familyId}/plans/{YYYY-MM}`（その月から有効な計画 `{ income, goal }`）だけ。`budgets/{familyId}/monthlyBudget` には「使えるお金（手取り − 貯めたい額）」を書いてそろえておく（v2 が読む）
+  - **既存の場所の形は変えない。** v3 で足したのは `budgets/{familyId}/plans/{YYYY-MM}`（その月から有効な計画 `{ income, goal }`）と、支出の `isSpecial`（特別費の印）だけ。`budgets/{familyId}/monthlyBudget` には「使えるお金（手取り − 貯めたい額）」を書いてそろえておく（v2 が読む）
 - **このアプリだけの決め事**：
   - **考え方は先取り貯金**：使えるお金 = 手取り − 貯めたい額。その月に貯まった額 = 手取り − 使った額。計算は `src/lib/savings.ts` に置き、テストを書く。いちばん古い計画の月から数え始め、それより前の月は数えない（収入の記録が無いので）
+  - **特別費**（`expenses/.../isSpecial: true`。車検・結婚式など）：使えるお金・今日の分・月ごとの貯金の判定には数えない。これまでに貯まったお金からは引く。帯や棒では輪郭だけで描いて、ふだんの支出と見分ける。v2 はこの印を知らないので、v2 ではふだんの支出として数えられる
   - **色の意味**：差し色のグラデーション（翡翠→縹）は「貯まるお金」と主ボタンだけ。使ったお金は文字の色、貯金に食い込んだ分は `--app-error`
   - **画面**：ちょきん（`/`）・きろく（`/records`）・あゆみ（`/journey`）。何をどこに置くか・なぜかは、各画面のファイルの頭に書いてある。変えるときはそこも直す
-  - **スクロール位置**：タブの画面は一度開いたら消さずに隠す（`AppShell` の `.pane`、中身は `src/app/tabScreens.tsx`）。行き来しても位置・月・読み込んだ記録が残る。「きろく」は月や絞り込みを替えたときだけ一番上へ。設定の画面は画面ごとに位置を覚える
+  - **スクロール位置**：タブの画面は一度開いたら消さずに隠す（`AppShell` の `.pane`、中身は `src/app/tabScreens.tsx`）。行き来しても位置・月・読み込んだ記録が残る。「きろく」は月の切り替えと絞り込みを上に固定し、一覧だけがスクロールする（`.records-list`）。月や絞り込みを替えたときだけ一覧を一番上へ。設定の画面は画面ごとに位置を覚える
   - **レイアウトを動かさない**：数字は届く前から同じ大きさを取る（`src/ui/Amount.tsx`）。文の長さが変わる所は行数ぶんの高さを決めておく。一覧の行は高さ固定。月を替えたときは新しい月が届くまで前の月を薄く残す（`useLive` の `keepPrevious`）
   - **動き**：操作への返事だけ。数字は数え上げ、帯と棒は幅が伸び縮み、タブは沈みがすべる、シートはせり上がって戻る
   - **記録のシート**（`src/entry/`）：金額は自前のテンキー（端末のキーボードを出さない）。書き込みを待たずに閉じ、トーストに［元に戻す］
   - 固定費は `fixedCosts` のひな形から毎月自動で支出に記録する（`src/data/hooks.ts` の `useFixedCostSync`、計算は `src/lib/fixedCosts.ts`）。キーは `fixed_{id}_{YYYY-MM}`（v2 と同じ。家族の複数端末や v2 と同時に動いても二重に記録しない）。その月の分は月初に先の日付で記録されるので、「今日の分」には数えない
   - 設定のアプリ固有の区分は `src/settings/chokin/`（貯金の計画・固定費・カテゴリーの整理・レシート・入力忘れのお知らせ・家族・ログアウト）
   - 入力忘れのお知らせは GitHub Actions（`daily-reminder.yml`）が毎晩 `scripts/send-reminders.cjs` を動かして Web Push で送る。受け取りは `public/push-sw.js`
-  - iPhone のホーム画面から開いたときの見え方を決める `index.html` の meta は変えない（DESIGN.md 8「注意」）。地の1色目を変えたら `theme-color` と `vite.config.ts` の色もそろえる
+  - iPhone のホーム画面から開いたときの見え方を決める `index.html` の meta の形は変えない（DESIGN.md 8「注意」）。`theme-color` の値だけは、地の1色目ではなく「画面の上端の色」（`src/theme.css` の `--app-top`。グラデーションの上端の真ん中あたり）にしてある。`.shell::before` も同じ色から地へ溶かす。色を変えたら `index.html`・`vite.config.ts`・`--app-top` をそろえる
   - design は v0.3.2。色は `src/theme.css`、枠は `src/app/app.css`（雛形と同じ）、アプリの画面の見た目は `src/screens.css`
   - テンキーの「1文字消す」の印は design にまだ無いので `src/entry/Keypad.tsx` に描いてある。design に足したら差し替える
 

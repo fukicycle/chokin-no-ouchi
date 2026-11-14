@@ -72,6 +72,13 @@
   user-select: none;
 }
 
+/* ---- 画面の上端：ステータスバーの帯（theme-color = --app-top）と同じ色から、地へゆっくり溶かす。
+   帯のすぐ下に色の段差が見えないようにする（雛形は地の1色目で短くふさぐだけ） ---- */
+.shell::before {
+  height: calc(env(safe-area-inset-top) + 56px);
+  background: linear-gradient(var(--app-top), transparent);
+}
+
 /* ---- 画面の重なり：タブの画面は消さずに隠しておく（スクロール位置と中身が残る） ---- */
 .panes {
   position: relative;
@@ -159,6 +166,14 @@
   gap: var(--fk-space-1);
 }
 
+.summary-special {
+  /* 札の下の余白に収める（無い月も札の高さは同じ） */
+  margin: var(--fk-space-2) 0 calc(var(--fk-space-3) * -1);
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--app-ink-muted);
+}
+
 /* 手取りの行き先の帯。左から「つかった」、右端に「ちょきん」。使いすぎると食い込む */
 .flow {
   position: relative;
@@ -233,6 +248,13 @@
 }
 .swatch--saving {
   background: var(--fk-accent-gradient);
+}
+.swatch--special {
+  box-shadow: inset 0 0 0 2px var(--app-spent);
+}
+.swatch-line {
+  width: 14px;
+  border-top: 2px dashed var(--fk-accent);
 }
 
 /* ---- 地に直接置くまとまり ---- */
@@ -326,10 +348,11 @@
   display: grid;
 }
 .expense-category {
+  display: flex;
+  align-items: center;
   font-size: 15px;
   line-height: 22px;
   font-weight: 700;
-  transition: color 0.15s;
 }
 .expense-note {
   font-size: 12px;
@@ -343,11 +366,74 @@
   font-size: 16px;
   font-weight: 700;
 }
-.expense:active .expense-category {
+/* 押せる行の合図（›）と、押している間の沈み */
+.row-go {
+  flex: none;
+  margin-left: calc(var(--fk-space-2) * -1);
+  color: var(--app-ink-muted);
+  transition: transform 0.15s var(--app-ease);
+}
+.expense,
+.month {
+  position: relative;
+}
+.expense::before,
+.month::before {
+  content: "";
+  position: absolute;
+  inset: 3px calc(var(--fk-space-2) * -1);
+  border-radius: var(--fk-radius-field);
+  background: var(--fk-dent);
+  box-shadow:
+    inset 2px 2px 6px var(--fk-shade),
+    inset -2px -2px 6px var(--fk-light);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.expense > *,
+.month > * {
+  position: relative;
+}
+.expense:active::before,
+.month:active::before {
+  opacity: 1;
+}
+.expense:active .row-go,
+.month:active .row-go {
+  transform: translateX(3px);
   color: var(--fk-accent);
 }
+@media (hover: hover) {
+  .expense:hover .row-go,
+  .month:hover .row-go {
+    color: var(--fk-accent);
+  }
+}
 
-/* ---- きろく ---- */
+/* ---- きろく：月と絞り込みは上に固定し、一覧だけがスクロールする ---- */
+.pane:has(> .records) {
+  overflow: hidden;
+  padding-bottom: 0;
+}
+.records {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.records-head {
+  flex: none;
+}
+.records-list {
+  flex: 1;
+  min-height: 0;
+  /* 左右は、押したときの沈みが切れないよう少し広げておく */
+  margin-inline: calc(var(--fk-space-4) * -1);
+  padding: 0 var(--fk-space-4) calc(var(--app-bottom-edge) + 112px);
+  /* 固定した上の部分の下へ、一覧がすっと消えていくように */
+  -webkit-mask-image: linear-gradient(transparent, #000 20px);
+  mask-image: linear-gradient(transparent, #000 20px);
+}
 .monthbar {
   display: flex;
   align-items: center;
@@ -367,8 +453,9 @@
   opacity: 0.35;
   cursor: default;
 }
-.records > .chips {
+.records-head > .chips {
   margin-top: var(--fk-space-3);
+  padding-bottom: var(--fk-space-2);
 }
 .days {
   padding: 0 var(--fk-space-2);
@@ -379,6 +466,9 @@
 }
 .day {
   padding-top: var(--fk-space-6);
+}
+.day:first-child {
+  padding-top: var(--fk-space-4);
 }
 .day-head {
   display: flex;
@@ -541,6 +631,112 @@
   word-break: auto-phrase;
 }
 
+/* ---- つかったお金の推移（12ヶ月） ---- */
+.trend {
+  margin-top: var(--fk-space-3);
+}
+.trend-plot {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  height: 196px;
+}
+.trend-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.trend-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 0;
+}
+.trend-value {
+  height: 16px;
+  margin-bottom: 2px;
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-ink-muted);
+  /* 「使えるお金」の線と重なっても読めるように、地の色でふちどる */
+  text-shadow:
+    0 0 3px var(--fk-ground),
+    0 0 3px var(--fk-ground),
+    0 0 3px var(--fk-ground);
+  position: relative;
+  z-index: 1;
+}
+.trend-normal,
+.trend-special {
+  width: 62%;
+  max-width: 22px;
+  transition: height 0.5s var(--app-ease);
+}
+.trend-normal {
+  border-radius: 5px 5px 0 0;
+  background: var(--app-spent);
+}
+/* 特別費は輪郭だけで上に積む（ふだんの支出と見分ける） */
+.trend-special {
+  margin-bottom: 2px;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 2px var(--app-spent);
+}
+.trend-month {
+  flex: none;
+  height: 24px;
+  font-size: 11px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-ink-muted);
+  background: linear-gradient(var(--fk-hair), var(--fk-hair)) top / 100% 1px no-repeat;
+}
+.trend-col:last-child .trend-month {
+  color: var(--fk-ink);
+  font-weight: 700;
+}
+.trend-col:active .trend-normal {
+  background: var(--fk-ink);
+}
+/* 今の「使えるお金」の線。棒の領域（下の月の行 24px を除く）に対する高さで置く */
+.trend-budget {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-bottom: 24px;
+  border-top: 2px dashed var(--fk-accent);
+  opacity: 0.7;
+  pointer-events: none;
+}
+.trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fk-space-1) var(--fk-space-4);
+  margin: var(--fk-space-3) 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--app-ink-muted);
+}
+.trend-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.trend-unit {
+  margin-left: auto;
+}
+
 /* ---- 記録するシート ---- */
 .entry {
   display: grid;
@@ -625,6 +821,13 @@
   width: 100%;
   height: 100%;
   cursor: pointer;
+}
+.entry-special {
+  min-height: 48px;
+  padding: 0 var(--fk-space-3);
+  border-radius: var(--fk-radius-field);
+  font-size: 13px;
+  font-weight: 700;
 }
 .entry-memo {
   flex: 1;
@@ -826,6 +1029,9 @@
   .pane--page,
   .flow > span,
   .month-fill,
+  .trend-normal,
+  .trend-special,
+  .row-go,
   .days {
     transition: none;
     animation: none;
