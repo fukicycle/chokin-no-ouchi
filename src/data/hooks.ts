@@ -68,23 +68,6 @@ export function useCategories() {
   ).value;
 }
 
-/** 月間予算（家族で共有） */
-export function useBudget() {
-  const { familyId } = useAuth();
-  const { value: monthlyBudget, loading: budgetLoading } = useLive<number>(
-    familyId ? `budget|${familyId}` : null,
-    (set) => onValue(ref(database, `budgets/${familyId}`), (s) => set(s.val()?.monthlyBudget || 0)),
-    0,
-  );
-  const saveBudget = useCallback(
-    async (amount: number) => {
-      if (familyId) await update(ref(database, `budgets/${familyId}`), { monthlyBudget: amount });
-    },
-    [familyId],
-  );
-  return { monthlyBudget, saveBudget, loading: budgetLoading };
-}
-
 const normalizeFixed = (input: FixedCostInput) => ({
   name: input.name.trim(),
   category: input.category.trim(),

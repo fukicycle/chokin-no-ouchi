@@ -1,31 +1,28 @@
 /*
-  貯金のおうちの色。design は色を持たないので、ここで5色を渡す（DESIGN.md 2）。
-  - 地は「生成り」から「白緑（びゃくろく）」へのグラデーション。温かさと清潔さ（夜は墨から深い青緑）
-  - 差し色は「杏」。グラデーションの終わりは「桃茶」（--app-accent-2）。どちらも暖色にして、
-    中間がくすまないようにする（清潔さは地の白緑とガラスの白で出す）
-  - 差し色のグラデーション（杏→桃茶）は、主ボタン・合計の金額・割合の棒・推移の線だけに使う
-  渡した色は `npx fk-contrast` で昼・夜とも確かめてある（文字・差し色とも 4.5:1 以上。
-  --app-accent-2 も、地と主ボタンの文字に対して 4.5:1 以上）。
+  貯金のおうちの色。design は色を持たないので、ここで色を渡す（DESIGN.md 2）。
 
-  地の1色目（--fk-ground-1）は、昼はほぼ白・夜はほぼ黒にしておく。ステータスバーは default で OS が塗るので、
-  ここが白・黒から離れた色だと、画面の上端に色の違う帯が見えてしまう（DESIGN.md「画面の上端と下端」）。
+  - 地は「ほぼ白」から「水浅葱（みずあさぎ）」へ。ガラスは水色の上がいちばんきれいに見える（夜は墨から深い青緑）
+  - 差し色は「翡翠」、グラデーションの終わりは「縹（はなだ）」。緑から青へ、近い色相でつなぐ
+  - 色の意味：差し色（翡翠→縹）は「貯まるお金」だけに使う（今月の貯金・貯金の帯・あゆみの棒）と、主ボタン。
+    使ったお金は文字の色（墨）で、貯金に食い込んだ分だけ --app-error で示す
+  渡した色は `npx fk-contrast` で昼・夜とも確かめてある（文字・差し色とも 4.5:1 以上）。
 
-  製品で足す色（--app-*）もここにまとめる。16 進数をほかのファイルに散らばらせない。
+  地の1色目（--fk-ground-1）は、昼はほぼ白・夜はほぼ黒（DESIGN.md 8「注意」）。
+  index.html の theme-color と vite.config.ts の色も同じ値にそろえる。
 */
 
 :root {
-  --fk-ground-1: #fcf6ee;
-  --fk-ground-2: #eaf2ee;
-  --fk-ink: #2b2622;
-  --fk-accent: #a3552f;
+  --fk-ground-1: #f8fbfa;
+  --fk-ground-2: #d3ebec;
+  --fk-ink: #16282b;
+  --fk-accent: #17695d;
   --fk-on-accent: #ffffff;
+  --fk-accent-2: #1f6390;
 
-  /* 差し色のグラデーションの終わり（桃茶） */
-  --app-accent-2: #9a5266;
   /* 補足の文字（地の両端に 4.5:1 以上） */
-  --app-ink-muted: #6a6158;
-  /* 取り消せない操作・エラー。差し色とは別の色にし、文言とアイコンでも伝える */
-  --app-error: #b42318;
+  --app-ink-muted: #4d6164;
+  /* 貯金に食い込んだ分・取り消せない操作・エラー。差し色とは別の色にし、文言とアイコンでも伝える */
+  --app-error: #b3261e;
   --app-on-error: #ffffff;
 
   --app-font-body: "Zen Kaku Gothic New", system-ui, sans-serif;
@@ -34,29 +31,29 @@
 }
 
 :root[data-theme="dark"] {
-  --fk-ground-1: #1c1915;
-  --fk-ground-2: #16211f;
-  --fk-ink: #f2ece4;
-  --fk-accent: #efb48e;
-  --fk-on-accent: #2b170b;
+  --fk-ground-1: #101516;
+  --fk-ground-2: #10282c;
+  --fk-ink: #e4efed;
+  --fk-accent: #7fd3bf;
+  --fk-on-accent: #05241e;
+  --fk-accent-2: #8fc6ea;
 
-  --app-accent-2: #eeadb9;
-  --app-ink-muted: #b8afa4;
+  --app-ink-muted: #a3b6b5;
   --app-error: #ff9a8b;
   --app-on-error: #3a0905;
 }
 
-/* テーマが「自動」のときは端末の設定に合わせる */
+/* テーマが「自動」のときは端末の設定に合わせる（上の夜の値と同じ） */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --fk-ground-1: #1c1915;
-    --fk-ground-2: #16211f;
-    --fk-ink: #f2ece4;
-    --fk-accent: #efb48e;
-    --fk-on-accent: #2b170b;
+    --fk-ground-1: #101516;
+    --fk-ground-2: #10282c;
+    --fk-ink: #e4efed;
+    --fk-accent: #7fd3bf;
+    --fk-on-accent: #05241e;
+    --fk-accent-2: #8fc6ea;
 
-    --app-accent-2: #eeadb9;
-    --app-ink-muted: #b8afa4;
+    --app-ink-muted: #a3b6b5;
     --app-error: #ff9a8b;
     --app-on-error: #3a0905;
   }
@@ -65,5 +62,6 @@
 /* 色から作るもの（昼・夜とも上の変数から計算する） */
 :root {
   --app-accent-soft: color-mix(in srgb, var(--fk-accent) 14%, transparent);
-  --app-gradient: linear-gradient(115deg, var(--fk-accent), var(--app-accent-2));
+  /* 使ったお金の面（帯・棒）。文字の色を薄めて作る */
+  --app-spent: color-mix(in srgb, var(--fk-ink) 62%, transparent);
 }

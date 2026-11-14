@@ -5,13 +5,16 @@ import type { AppConfig } from "./src/config/types.ts";
 const config: AppConfig = {
   name: "貯金のおうち",
   shortName: "貯金のおうち",
-  description: "家族で共有できる家計簿。レシートの読み取り、固定費の自動計上、支出の分析ができます",
+  description: "先に貯金を取り分ける、家族の家計簿。今日あといくら使えるかと、貯まっていく様子が分かります",
 
-  // 一番上の画面：ホーム（今月いくら使ったか）・分析（振り返り）・履歴（記録の一覧）
+  // 一番上の画面（どれも「見たい気持ち」で分けてある）
+  //   ちょきん：今月の貯金は守れているか・今日あといくら使えるか（買う前に見る）
+  //   きろく：何にいくら使ったか（あの支出を確かめる・直す）
+  //   あゆみ：これまでにいくら貯まったか（月末に見る）
   tabs: [
-    { path: "/", label: "ホーム", icon: "wallet" },
-    { path: "/insights", label: "分析", icon: "chart" },
-    { path: "/history", label: "履歴", icon: "list" },
+    { path: "/", label: "ちょきん", icon: "home" },
+    { path: "/records", label: "きろく", icon: "list" },
+    { path: "/journey", label: "あゆみ", icon: "chart" },
   ],
 
   // 端末だけに保存する切り替え。家族で共有する設定（予算・固定費など）は設定画面の

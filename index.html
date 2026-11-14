@@ -3,12 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <!-- iPhone のホーム画面から開いたときの見え方を決める meta は、問題の出ていない
-         おまちかね・v2.0.0 と同じ形にそろえる。足したり JS で書き換えたりしない。
-         mobile-web-app-capable を足す・black-translucent にする・theme-color を JS で書き換える、の
-         どれかを入れた v2.1.0〜2.2.2 では、画面の下端に黒い帯が出た（design の DESIGN.md「注意」） -->
-    <meta name="theme-color" content="#fcf6ee" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1c1915" media="(prefers-color-scheme: dark)" />
+    <!-- iPhone のホーム画面から開いたときの見え方を決める meta は、この形から変えない（DESIGN.md 8「注意」）。
+         mobile-web-app-capable を足さない・black-translucent にしない・theme-color を JS で書き換えない。
+         theme-color は地の1色目（src/theme.css の --fk-ground-1 の昼・夜）とそろえる -->
+    <meta name="theme-color" content="#f8fbfa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101516" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="貯金のおうち" />

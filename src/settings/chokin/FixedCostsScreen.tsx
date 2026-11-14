@@ -4,7 +4,7 @@
 import { useState, type FormEvent } from "react";
 import { useCategories, useFixedCosts } from "../../data/hooks";
 import type { FixedCost, FixedCostInput } from "../../data/types";
-import { formatYen } from "../../lib/analytics";
+import { formatYen } from "../../lib/format";
 import { EmptyState } from "../../ui/EmptyState";
 import { Fab } from "../../ui/Fab";
 import { useFeedback } from "../../ui/Feedback";

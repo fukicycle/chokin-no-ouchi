@@ -1,5 +1,5 @@
 /*
-  共通の枠と部品の見た目（design v0.2）。色は design の --fk-* と、theme.css の製品の変数（--app-*）だけを使う。
+  共通の枠と部品の見た目（雛形と同じ）。色は design の --fk-* と、theme.css の製品の変数（--app-*）だけを使う。
 
   見た目の約束（DESIGN.md）
   - 地は2色のグラデーション（body）。上に飾りを重ねない
@@ -220,7 +220,7 @@ body {
   border: 0;
   border-radius: var(--fk-radius-pill);
   /* 主ボタンは差し色のグラデーション（一画面に一つ） */
-  background: var(--app-gradient);
+  background: var(--fk-accent-gradient);
   color: var(--fk-on-accent);
   font: inherit;
   font-size: 15px;
@@ -233,7 +233,7 @@ body {
   transition: bottom 0.2s ease;
 }
 .fab:active {
-  background: linear-gradient(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--app-gradient);
+  background: linear-gradient(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--fk-accent-gradient);
   box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.25);
 }
 .fab--icon {
@@ -245,14 +245,14 @@ body {
 /* ---- ボタン（design の .fk-button に足す修飾） ---- */
 /* 主なボタン（一画面に一つ）は、右下の主ボタンと同じ差し色のグラデーション */
 .fk-button--primary {
-  background: var(--app-gradient);
+  background: var(--fk-accent-gradient);
 }
 .fk-button--primary:active {
-  background: linear-gradient(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--app-gradient);
+  background: linear-gradient(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--fk-accent-gradient);
 }
 @media (hover: hover) {
   .fk-button--primary:hover {
-    background: linear-gradient(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.06)), var(--app-gradient);
+    background: linear-gradient(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.06)), var(--fk-accent-gradient);
   }
 }
 .fk-button--block {

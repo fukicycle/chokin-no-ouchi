@@ -1,18 +1,10 @@
-// 支出の手入力・編集。一番よく使う欄（金額）を一番上に置き、
-// カテゴリーはよく使うものを押すだけで選べるようにする。保存は一番下（親指の届く所）。
-import { useState, type FormEvent } from "react";
+// レシートから読み取った内容を確かめて直す欄。読み取りの間違いを直すためのものなので、
+// 金額・カテゴリー・メモ・日付を1件ずつそのまま書き換えられるようにしてある。
 import { useCategories } from "../data/hooks";
-import { dateInputToIso, isoToDateInput, todayInput } from "../data/expenses";
-import type { Expense, ExpenseInput } from "../data/types";
+import { dateInputToIso } from "../data/expenses";
+import type { ExpenseInput } from "../data/types";
 
 export type ExpenseDraft = { amount: string; category: string; description: string; date: string };
-
-export const draftFrom = (e?: Expense): ExpenseDraft => ({
-  amount: e ? String(e.amount) : "",
-  category: e?.category ?? "",
-  description: e?.description ?? "",
-  date: e ? isoToDateInput(e.date) : todayInput(),
-});
 
 export const draftToInput = (
   d: ExpenseDraft,
@@ -23,7 +15,7 @@ export const draftToInput = (
   date: dateInputToIso(d.date),
 });
 
-export function ExpenseFields({
+export function ReceiptFields({
   draft,
   onChange,
   idPrefix,
@@ -103,36 +95,5 @@ export function ExpenseFields({
         />
       </label>
     </div>
-  );
-}
-
-export function ExpenseForm({
-  initial,
-  submitLabel,
-  onSubmit,
-}: {
-  initial?: Expense;
-  submitLabel: string;
-  onSubmit: (input: ReturnType<typeof draftToInput>) => Promise<void>;
-}) {
-  const [draft, setDraft] = useState(() => draftFrom(initial));
-  const [saving, setSaving] = useState(false);
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!draft.amount || !draft.category.trim()) return;
-    setSaving(true);
-    try {
-      await onSubmit(draftToInput(draft));
-    } finally {
-      setSaving(false);
-    }
-  };
-  return (
-    <form onSubmit={submit}>
-      <ExpenseFields draft={draft} onChange={setDraft} idPrefix={initial ? `edit-${initial.id}` : "new"} />
-      <button className="fk-button fk-button--primary fk-button--block form-submit" disabled={saving}>
-        {saving ? "保存しています…" : submitLabel}
-      </button>
-    </form>
   );
 }

@@ -1,133 +1,224 @@
-// ホーム：「今月いくら使ったか」と「あといくら使えるか」をひと目で。
-// 数字（合計）を一番大きく、その下に予算の受け皿、カテゴリーの内訳、最近の支出の順。
-import { useState } from "react";
+// ちょきん：開いてすぐ「今月の貯金は守れているか」と「今日あといくら使えるか」が分かる画面。
+//
+// 何をどこに置くか
+// - まとめの札（ガラスは一画面にこの一枚）：今月の貯金。先に取り分けた額が、いま守れているか。
+//   帯は手取りの行き先。左から「つかった」が伸び、右端に「ちょきん」が待っている。
+//   使いすぎると「つかった」が「ちょきん」に食い込む（その分だけ色が変わり、上の数字が減る）
+// - 今日つかえるお金：買う前にここを見る。札のすぐ下、スクロールしなくても見える所に、数字を大きく
+// - 今日のきろく：いま入れた記録が入ったか確かめる所。行を押すと直せる
+// - 記録するボタンは右下（AppShell）。この画面に主ボタンは足さない
 import { useNavigate } from "react-router";
-import { AddExpenseButton } from "../expenses/AddExpenseButton";
-import { ExpenseDetailSheet } from "../expenses/ExpenseDetailSheet";
-import { useBudget, useExpensesInRange } from "../data/hooks";
-import { usePeriod } from "../data/period";
-import type { Expense } from "../data/types";
-import { dailyAllowance, formatYen, sumAmount, sumFixed, totalsByCategory } from "../lib/analytics";
-import { Bars } from "../ui/Bars";
-import { EmptyState } from "../ui/EmptyState";
-import { GlassPanel } from "../ui/GlassPanel";
-import { Meter } from "../ui/Meter";
-import { SkeletonLines } from "../ui/Skeleton";
-import { useAnimatedNumber } from "../ui/useAnimatedNumber";
-import { PeriodBar } from "../ui/PeriodBar";
-import { ExpenseRow } from "./HistoryScreen";
-import { useHistoryFilter } from "./historyFilter";
-
-const CATEGORY_LIMIT = 5;
+import { useExpensesInRange } from "../data/hooks";
+import { usePlans } from "../data/plan";
+import { dayKey, formatYen } from "../lib/format";
+import { monthRange, parseMonthKey } from "../lib/months";
+import {
+  budgetOf,
+  monthResult,
+  planFor,
+  sumAmount,
+  todayAllowance,
+  type MonthResult,
+  type Plan,
+} from "../lib/savings";
+import { dayKeyToDate, useToday } from "../lib/useToday";
+import { Amount } from "../ui/Amount";
+import { ExpenseRow } from "../ui/ExpenseRow";
+import { Icon } from "../ui/Icon";
 
 export function HomeScreen() {
-  const period = usePeriod();
-  const { expenses, loading, refreshing } = useExpensesInRange(period.start, period.end);
-  const { monthlyBudget } = useBudget();
+  const todayKey = useToday();
+  const today = dayKeyToDate(todayKey);
+  const month = todayKey.slice(0, 7);
+  const { year, month: m } = parseMonthKey(month);
+  const { start, end } = monthRange(year, m);
+  const { expenses, loading: expensesLoading } = useExpensesInRange(start, end);
+  const { plans, legacyBudget, loading: plansLoading } = usePlans();
   const navigate = useNavigate();
-  const { setCategory } = useHistoryFilter();
-  const [selected, setSelected] = useState<Expense | null>(null);
 
-  const total = sumAmount(expenses);
-  const shownTotal = useAnimatedNumber(total);
-  const fixed = sumFixed(expenses);
-  const budget = period.mode === "month" ? monthlyBudget : monthlyBudget * 12;
-  const allowance =
-    period.mode === "month" ? dailyAllowance(monthlyBudget, total, period.year, period.month) : null;
-  const categories = totalsByCategory(expenses);
+  const loading = expensesLoading || plansLoading;
+  const plan = planFor(plans, month);
+  const spent = sumAmount(expenses);
+  const todays = expenses.filter((e) => dayKey(new Date(e.date)) === todayKey && !e.isFixed);
 
   return (
-    <div className={refreshing ? "page is-refreshing" : "page"}>
-      <PeriodBar />
-
-      <GlassPanel className="summary">
-        <section className="hero">
-          <p className="hero-label">{period.noun}の支出</p>
-          <p className="hero-amount">{loading ? "…" : formatYen(shownTotal)}</p>
-          {fixed > 0 && (
-            <p className="hero-sub">
-              うち固定費 {formatYen(fixed)}・変動費 {formatYen(total - fixed)}
-            </p>
-          )}
-        </section>
-
-        {budget > 0 ? (
-          <section className="block">
-            <div className="block-head">
-              <span>予算 {formatYen(budget)}</span>
-              <span className={total > budget ? "status-error" : undefined}>
-                {total > budget
-                  ? `${formatYen(total - budget)} 超えています`
-                  : `残り ${formatYen(budget - total)}`}
-              </span>
-            </div>
-            <Meter ratio={total / budget} label="予算の消化" />
-            {allowance && allowance.remaining > 0 && (
-              <p className="hint">
-                今日から月末まで（{allowance.remainingDays}日）、1日あたり{" "}
-                <strong>{formatYen(Math.floor(allowance.perDay))}</strong> まで使えます
-              </p>
-            )}
-          </section>
-        ) : (
-          <section className="block">
-            <p className="hint">
-              月の予算を決めると、あといくら使えるかがここに出ます。{" "}
-              <button className="link-button" onClick={() => navigate("/settings/budget")}>
-                予算を決める
-              </button>
-            </p>
-          </section>
-        )}
-      </GlassPanel>
-
-      {loading ? (
-        <SkeletonLines rows={5} />
-      ) : expenses.length === 0 ? (
-        <EmptyState title={`${period.noun}の記録はまだありません`}>
-          右下の［記録する］から、使ったお金を残せます。
-        </EmptyState>
+    <div className="page home">
+      {loading || plan ? (
+        <Summary month={m} plan={plan} result={plan ? monthResult(plan, spent) : null} />
       ) : (
-        <>
-          <section className="block">
-            <h2 className="block-title">カテゴリー</h2>
-            <Bars
-              items={categories.slice(0, CATEGORY_LIMIT).map((c) => ({
-                key: c.category,
-                label: c.category,
-                amount: c.amount,
-                note: total > 0 ? `${Math.round((c.amount / total) * 100)}%` : undefined,
-              }))}
-              onSelect={(c) => {
-                setCategory(c);
-                navigate("/history");
-              }}
-            />
-            {categories.length > CATEGORY_LIMIT && (
-              <button className="link-button" onClick={() => navigate("/insights")}>
-                ほか{categories.length - CATEGORY_LIMIT}件のカテゴリーは分析で
-              </button>
-            )}
-          </section>
-
-          <hr className="fk-groove" />
-
-          <section className="block">
-            <h2 className="block-title">最近の支出</h2>
-            <ul className="expense-list">
-              {expenses.slice(0, 5).map((e) => (
-                <ExpenseRow key={e.id} expense={e} onOpen={setSelected} />
-              ))}
-            </ul>
-            <button className="link-button" onClick={() => navigate("/history")}>
-              すべての支出を履歴で見る
+        <section className="summary fk-glass" aria-label="貯金の計画">
+          <div className="fk-glass-bd" />
+          <div className="fk-glass-in">
+            <p className="summary-label">貯金の計画がまだありません</p>
+            <p className="lead">
+              月の手取りと、毎月貯めたい額を決めると、今日あといくら使えるかが分かります。
+              {legacyBudget > 0 && `いままでの月の予算は ${formatYen(legacyBudget)} でした。`}
+            </p>
+            <button className="fk-button fk-button--block" onClick={() => navigate("/settings/plan")}>
+              計画を立てる
+              <Icon name="forward" size="sm" />
             </button>
-          </section>
-        </>
+          </div>
+        </section>
       )}
 
-      <AddExpenseButton />
-      <ExpenseDetailSheet key={selected?.id} expense={selected} onClose={() => setSelected(null)} />
+      <section className="today" aria-label="今日つかえるお金">
+        <h2 className="block-title">{plan || loading ? "今日つかえるお金" : `${m}月につかったお金`}</h2>
+        {plan || loading ? (
+          <Today plan={plan} expenses={expenses} today={today} loading={loading} />
+        ) : (
+          <p className="today-amount">
+            <Amount value={spent} />
+          </p>
+        )}
+      </section>
+
+      <section className="block">
+        <div className="block-head">
+          <h2 className="block-title">今日のきろく</h2>
+          {todays.length > 0 && <span className="block-value">{formatYen(sumAmount(todays))}</span>}
+        </div>
+        {todays.length > 0 ? (
+          <ul className="expenses">
+            {todays.map((e) => (
+              <ExpenseRow key={e.id} expense={e} />
+            ))}
+          </ul>
+        ) : (
+          <p className="quiet">{loading ? "　" : "今日はまだ記録がありません"}</p>
+        )}
+      </section>
     </div>
+  );
+}
+
+function Summary({ month, plan, result }: { month: number; plan: Plan | null; result: MonthResult | null }) {
+  const waiting = !plan || !result;
+  const over = result?.over ?? 0;
+  return (
+    <section className="summary fk-glass" aria-label="今月の貯金">
+      <div className="fk-glass-bd" />
+      <div className="fk-glass-in">
+        <p className="summary-label">{month}月の貯金</p>
+        <p className="summary-amount">
+          <Amount
+            value={result?.kept ?? 0}
+            loading={waiting}
+            className={over > 0 ? "is-eaten" : "fk-gradient-text"}
+          />
+        </p>
+        <p className={over > 0 ? "summary-state is-eaten" : "summary-state"}>
+          {waiting ? (
+            "　"
+          ) : over > 0 ? (
+            <>
+              <Icon name="warning" size="sm" />
+              {result && result.saved < 0
+                ? `手取りを ${formatYen(-result.saved)} こえて使っています`
+                : `使いすぎた ${formatYen(over)} が、貯金に食い込んでいます`}
+            </>
+          ) : (
+            <>
+              <Icon name="check" size="sm" />
+              守れています。使えるお金が余れば、月末に上乗せされます
+            </>
+          )}
+        </p>
+
+        <Flow plan={plan} result={result} />
+      </div>
+    </section>
+  );
+}
+
+/** 手取りの行き先の帯。幅は手取りに対する割合 */
+function Flow({ plan, result }: { plan: Plan | null; result: MonthResult | null }) {
+  const income = plan?.income || 1;
+  const pct = (n: number) => `${Math.min(100, Math.max(0, (n / income) * 100))}%`;
+  const budget = result?.budget ?? 0;
+  const spent = result?.spent ?? 0;
+  const goal = plan?.goal ?? 0;
+  const over = result?.over ?? 0;
+  return (
+    <>
+      <div
+        className="flow"
+        role="img"
+        aria-label={
+          plan && result
+            ? `手取り ${formatYen(plan.income)} のうち、つかった ${formatYen(spent)}、のこり ${formatYen(result.left)}、ちょきん ${formatYen(result.kept)}`
+            : undefined
+        }
+      >
+        <span className="flow-saving" style={{ width: pct(goal) }} />
+        <span className="flow-spent" style={{ width: pct(Math.min(spent, budget)) }} />
+        <span className="flow-over" style={{ left: pct(budget), width: pct(Math.min(over, goal)) }} />
+      </div>
+      <dl className="flow-legend">
+        <div>
+          <dt>
+            <i className="swatch swatch--spent" />
+            つかった
+          </dt>
+          <dd>
+            <Amount value={spent} loading={!result} />
+          </dd>
+        </div>
+        <div>
+          <dt>
+            <i className="swatch swatch--left" />
+            のこり
+          </dt>
+          <dd>
+            <Amount value={result?.left ?? 0} loading={!result} />
+          </dd>
+        </div>
+        <div>
+          <dt>
+            <i className="swatch swatch--saving" />
+            ちょきん
+          </dt>
+          <dd>
+            <Amount value={result?.kept ?? 0} loading={!result} />
+          </dd>
+        </div>
+      </dl>
+    </>
+  );
+}
+
+function Today({
+  plan,
+  expenses,
+  today,
+  loading,
+}: {
+  plan: Plan | null;
+  expenses: Parameters<typeof todayAllowance>[1];
+  today: Date;
+  loading: boolean;
+}) {
+  const budget = plan ? budgetOf(plan) : 0;
+  const a = todayAllowance(budget, expenses, today);
+  const waiting = loading || !plan;
+  const usedUp = sumAmount(expenses) >= budget;
+  return (
+    <>
+      <p className="today-amount">
+        <span className="today-prefix">あと</span>
+        <Amount value={a.leftToday} loading={waiting} />
+      </p>
+      <p className="today-note">
+        {waiting
+          ? "　"
+          : usedUp
+            ? "今月の使えるお金は使い切りました。ここから先は貯金が減ります"
+            : a.overToday > 0
+              ? a.nextPerDay === null
+                ? `今日の分を ${formatYen(a.overToday)} こえました`
+                : `今日の分を ${formatYen(a.overToday)} こえました。明日からは1日 ${formatYen(a.nextPerDay)}`
+              : `今日の分は ${formatYen(a.perDay)}。月末まで${a.daysLeft}日、この中なら貯金は守れます`}
+      </p>
+    </>
   );
 }
