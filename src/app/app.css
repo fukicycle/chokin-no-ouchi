@@ -14,29 +14,6 @@
   display: block;
 }
 
-/* ---- 画面の高さ（src/app/iosViewport.ts が実測して入れる） ----
-   --app-vh：実際の画面の高さ。iOS がアプリに戻ったときに 100dvh を計算し直さないことがあるため
-   --ios-bottom-shim：iPhone のホーム画面から開いたとき、ページが画面より短くなる分。ずれていなければ 0 */
-:root {
-  --app-vh: 100dvh;
-  --ios-bottom-shim: 0px;
-}
-body {
-  height: calc(var(--app-vh) + var(--ios-bottom-shim));
-  /* シート・ダイアログ（body の直下に描く）を、伸ばした body の下端まで届かせる基準にする */
-  position: relative;
-}
-/* 下端の帯を塞ぐために伸ばすときは、伸ばした分が画面の端で切り取られないよう
-   overflow: hidden を外す（外さないと帯が消えない）。ページが動いてしまう分は
-   iosViewport.ts が先頭に留め、スクロールは中身の領域（.fk-scroll）だけのまま */
-html.ios-bottom-shim {
-  height: calc(100% + var(--ios-bottom-shim));
-}
-html.ios-bottom-shim,
-html.ios-bottom-shim body {
-  overflow: visible;
-}
-
 body {
   font-family: var(--app-font-body);
   font-size: 15px;
@@ -93,8 +70,8 @@ body {
   display: flex;
   flex-direction: column;
 }
-/* ステータスバー（時計・電波）の下に中身の文字が流れ込まないよう、上端を地の色でふさぐ。
-   下に向かって薄くし、浮いたトップバーとの間は地のグラデーションに溶け込ませる */
+/* 浮いたトップバーの上のすき間に、スクロールした中身の文字がのぞかないよう、上端を地の色でふさぐ。
+   下に向かって薄くし、トップバーとの間は地のグラデーションに溶け込ませる */
 .shell::before {
   content: "";
   position: absolute;
@@ -233,7 +210,7 @@ body {
 .fab {
   position: fixed;
   right: var(--fk-space-4);
-  bottom: calc(var(--app-bottom-edge) + var(--fk-space-4) + var(--app-toast-space) - var(--ios-bottom-shim));
+  bottom: calc(var(--app-bottom-edge) + var(--fk-space-4) + var(--app-toast-space));
   z-index: 10;
   display: inline-flex;
   align-items: center;
@@ -322,7 +299,7 @@ body {
   position: fixed;
   left: var(--fk-space-4);
   right: var(--fk-space-4);
-  bottom: calc(var(--app-bottom-edge) + var(--fk-space-4) - var(--ios-bottom-shim));
+  bottom: calc(var(--app-bottom-edge) + var(--fk-space-4));
   z-index: 30;
   max-width: 480px;
   margin-inline: auto;
@@ -358,8 +335,7 @@ body {
 
 /* ---- シート・ダイアログ：浮いている層なのでガラス。読みやすさのため面は濃くする ---- */
 .scrim {
-  /* fixed は短いページの下端までしか届かないので、伸ばした body を基準に覆う */
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 40;
   display: grid;

@@ -9,9 +9,10 @@
     <meta name="theme-color" content="#1c1915" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <!-- ホーム画面から開いたとき、ステータスバーを白・黒の帯にせず、地のグラデーションを透かす
-         （上端の余白は env(safe-area-inset-top) で空けている） -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- ステータスバーは default（OS が塗る）にする。black-translucent にすると、iPhone のホーム画面から
+         開いたときにページの高さが短くなり、画面の下端に黒い帯が出る（直すには無理な対処が要る）。
+         帯の色が地と段差にならないよう、地の1色目はほぼ白・ほぼ黒にしてある（src/theme.css） -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
