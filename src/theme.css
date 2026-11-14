@@ -8,7 +8,7 @@
   渡した色は `npx fk-contrast` で昼・夜とも確かめてある（文字・差し色とも 4.5:1 以上）。
 
   地の1色目（--fk-ground-1）は、昼はほぼ白・夜はほぼ黒（DESIGN.md 8「注意」）。
-  index.html の theme-color と vite.config.ts の色も同じ値にそろえる。
+  ステータスバーの帯の色（theme-color）は --app-top。
 */
 
 :root {
@@ -19,6 +19,10 @@
   --fk-on-accent: #ffffff;
   --fk-accent-2: #1f6390;
 
+  /* 画面の上端の色。地のグラデーション（150度）は上端でも左から右へ少し色が進むので、
+     その真ん中あたりの色にして、ステータスバーの帯と地の境目を目立たなくする。
+     index.html の theme-color・vite.config.ts の色と同じ値にそろえる */
+  --app-top: #f4f9f9;
   /* 補足の文字（地の両端に 4.5:1 以上） */
   --app-ink-muted: #4d6164;
   /* 貯金に食い込んだ分・取り消せない操作・エラー。差し色とは別の色にし、文言とアイコンでも伝える */
@@ -38,6 +42,7 @@
   --fk-on-accent: #05241e;
   --fk-accent-2: #8fc6ea;
 
+  --app-top: #101718;
   --app-ink-muted: #a3b6b5;
   --app-error: #ff9a8b;
   --app-on-error: #3a0905;
@@ -53,6 +58,7 @@
     --fk-on-accent: #05241e;
     --fk-accent-2: #8fc6ea;
 
+    --app-top: #101718;
     --app-ink-muted: #a3b6b5;
     --app-error: #ff9a8b;
     --app-on-error: #3a0905;

@@ -10,6 +10,11 @@ export type Expense = {
   /** 固定費から自動で計上したもの */
   isFixed?: boolean;
   fixedCostId?: string;
+  /**
+   * 特別費（車検・結婚式など、ふだんの暮らしの外の大きな出費）。v3 で足した印。
+   * 「使えるお金」と月ごとの貯金の判定には数えず、これまでに貯まったお金からは引く（src/lib/savings.ts）
+   */
+  isSpecial?: boolean | null;
 };
 
 export type ExpenseInput = Omit<Expense, "id">;

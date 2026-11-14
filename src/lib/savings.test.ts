@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { journey, monthResult, planFor, startMonth, todayAllowance, totalSaved } from "./savings";
+import {
+  journey,
+  monthResult,
+  planFor,
+  spendingTrend,
+  startMonth,
+  todayAllowance,
+  totalSaved,
+  totalSpecial,
+} from "./savings";
 
 const plans = { "2026-11": { income: 300000, goal: 50000 }, "2027-02": { income: 320000, goal: 80000 } };
 const at = (y: number, m: number, d: number) => new Date(y, m - 1, d, 12).toISOString();
@@ -61,6 +70,17 @@ describe("今日あといくら", () => {
     const a = todayAllowance(100000, [{ amount: 30000, date: at(2026, 11, 21), isFixed: true }], today);
     expect(a).toMatchObject({ perDay: 7000, spentToday: 0, leftToday: 7000 });
   });
+  it("特別費は今日の分にも、使えるお金にも数えない", () => {
+    const a = todayAllowance(
+      100000,
+      [
+        { amount: 150000, date: at(2026, 11, 21), isSpecial: true },
+        { amount: 500, date: at(2026, 11, 21) },
+      ],
+      today,
+    );
+    expect(a).toMatchObject({ perDay: 10000, spentToday: 500, leftToday: 9500 });
+  });
   it("月末は明日からの額が無い", () => {
     expect(todayAllowance(1000, [], new Date(2026, 10, 30)).nextPerDay).toBeNull();
   });
@@ -82,6 +102,36 @@ describe("あゆみ", () => {
     expect(months.map((m) => m.closed)).toEqual([false, true, true]);
     expect(months[1].result).toMatchObject({ over: 10000, saved: 40000 });
     expect(totalSaved(months)).toBe(60000 + 40000);
+  });
+  it("特別費は月の結果に数えず、これまでに貯まった額からは引く", () => {
+    const months = journey(
+      plans,
+      [
+        { amount: 240000, date: at(2026, 11, 3) },
+        { amount: 120000, date: at(2026, 11, 20), isSpecial: true },
+      ],
+      new Date(2026, 11, 15),
+    );
+    expect(months[1]).toMatchObject({ month: "2026-11", special: 120000 });
+    expect(months[1].result).toMatchObject({ over: 0, kept: 50000, saved: 60000 });
+    expect(totalSpecial(months)).toBe(120000);
+    expect(totalSaved(months)).toBe(60000 - 120000);
+  });
+  it("推移は今月までを古い順に。計画より前の月も、特別費も分けて出す", () => {
+    const trend = spendingTrend(
+      [
+        { amount: 1000, date: at(2026, 9, 3) },
+        { amount: 2000, date: at(2026, 11, 3) },
+        { amount: 500, date: at(2026, 11, 4), isSpecial: true },
+      ],
+      3,
+      new Date(2026, 10, 15),
+    );
+    expect(trend).toEqual([
+      { month: "2026-09", normal: 1000, special: 0 },
+      { month: "2026-10", normal: 0, special: 0 },
+      { month: "2026-11", normal: 2000, special: 500 },
+    ]);
   });
   it("計画がなければ空", () => {
     expect(journey({}, [])).toEqual([]);
