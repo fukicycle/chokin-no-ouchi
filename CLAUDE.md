@@ -18,7 +18,7 @@
   - 集計の計算は `src/lib/analytics.ts` に置き、テストを書く。月末の見込みは「固定費＋変動費を今日までのペースで伸ばしたもの」
   - 設定のアプリ固有の区分は `src/settings/chokin/`（予算・固定費・カテゴリーの整理・レシート・入力忘れのお知らせ・家族・ログアウト）
   - 入力忘れのお知らせは GitHub Actions（`daily-reminder.yml`）が毎晩 `scripts/send-reminders.cjs` を動かして Web Push で送る。受け取りは `public/push-sw.js`
-  - ステータスバーは `default`（OS が塗る）。`black-translucent` にはしない（iPhone のホーム画面から開いたとき下端に黒い帯が出て、直すには無理な対処が要る。v2.2.0〜2.2.1 で試して戻した）。上端の帯が目立たないよう、地の1色目はほぼ白・ほぼ黒にする
+  - iPhone のホーム画面から開いたときの見え方を決める `index.html` の meta は、おまちかね・v2.0.0 と同じ形から変えない（`apple-mobile-web-app-capable`・`status-bar-style: default`・`theme-color` を昼夜の2つ）。`mobile-web-app-capable` を足す・`black-translucent` にする・`theme-color` を JS で書き換える、を入れた v2.1.0〜2.2.2 では画面の下端に黒い帯が出た。上端の帯が目立たないよう、地の1色目はほぼ白・ほぼ黒にする
   - design は v0.2.0（色を持たない版）。色は `src/theme.css`、アプリの画面の見た目は `src/screens.css`
 
 ## 共通の決め事（変えない）

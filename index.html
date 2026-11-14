@@ -3,16 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <!-- 画面上端（ステータスバー・ブラウザのバー）の色。地の1色目に合わせる。
-         テーマを選び直したときは src/app/themeColor.ts が両方の値を書き換える -->
+    <!-- iPhone のホーム画面から開いたときの見え方を決める meta は、問題の出ていない
+         おまちかね・v2.0.0 と同じ形にそろえる。足したり JS で書き換えたりしない。
+         mobile-web-app-capable を足す・black-translucent にする・theme-color を JS で書き換える、の
+         どれかを入れた v2.1.0〜2.2.2 では、画面の下端に黒い帯が出た（design の DESIGN.md「注意」） -->
     <meta name="theme-color" content="#fcf6ee" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1c1915" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <!-- ステータスバーは default（OS が塗る）にする。black-translucent にすると、iPhone のホーム画面から
-         開いたときにページの高さが短くなり、画面の下端に黒い帯が出る（直すには無理な対処が要る）。
-         帯の色が地と段差にならないよう、地の1色目はほぼ白・ほぼ黒にしてある（src/theme.css） -->
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="貯金のおうち" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -26,14 +25,7 @@
       // 保存したテーマを最初の描画の前に当てる（ちらつき防止）
       try {
         var t = JSON.parse(localStorage.getItem("%BASE_URL%::theme") || '"auto"');
-        if (t === "light" || t === "dark") {
-          document.documentElement.dataset.theme = t;
-          // 端末の設定と違うテーマを選んでいても、上端の色が最初から合うように
-          var c = t === "dark" ? "#1c1915" : "#fcf6ee";
-          document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
-            m.setAttribute("content", c);
-          });
-        }
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
       } catch (e) {}
     </script>
   </head>
