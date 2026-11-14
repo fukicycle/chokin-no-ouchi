@@ -1,16 +1,24 @@
 /*
   貯金のおうちの画面の見た目。色・余白は --fk-* と theme.css の --app-* だけを使う。
-  本文は地に直接置く（カードで囲まない）。沈める＝受け皿・選んでいるもの、浮かせる＝押せるもの。
+
+  見た目の約束
+  - 本文は地に直接置く。ガラスの札は、画面でいちばん見てほしいまとまりに一枚だけ（.summary）
+  - 差し色のグラデーションは「貯まるお金」だけ（今月の貯金・帯の貯金・あゆみの棒）と主ボタン
+  - 沈める＝受け皿・選んでいるもの、浮かせる＝押せるもの
+  - 数字が入る所は、届く前から同じ大きさを取っておく（届いたときにまわりが動かない）
 */
 
-.num,
-.hero-amount,
-.stat-value,
+.summary-amount,
+.today-amount,
+.flow-legend dd,
+.block-value,
 .expense-amount,
-.bars-value,
 .day-total,
-.detail-amount,
-.filters-total {
+.chip-value,
+.month-amount,
+.entry-amount,
+.plan-result-value,
+.num {
   font-variant-numeric: tabular-nums;
 }
 .muted {
@@ -27,10 +35,6 @@
   line-height: 21px;
   color: var(--app-ink-muted);
 }
-.hint strong {
-  color: var(--fk-ink);
-  font-variant-numeric: tabular-nums;
-}
 .status-error,
 .status-ok {
   display: inline-flex;
@@ -42,9 +46,6 @@
 .status-error {
   color: var(--app-error);
   font-weight: 700;
-}
-.status-ok {
-  color: var(--fk-ink);
 }
 .tag {
   margin-left: var(--fk-space-2);
@@ -58,91 +59,111 @@
     inset 1px 1px 3px var(--fk-shade),
     inset -1px -1px 3px var(--fk-light);
 }
-
-/* ---- 期間の切り替え ---- */
-.period {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--fk-space-2);
-  margin: 0 calc(var(--fk-space-2) * -1) var(--fk-space-2);
-}
-.period-nav {
-  display: flex;
-  align-items: center;
-}
-.period-label {
-  min-width: 7.5em;
-  text-align: center;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.fk-icon-button:disabled {
-  opacity: 0.3;
-  cursor: default;
+.is-eaten {
+  color: var(--app-error);
 }
 
-/* ---- ホーム：合計の数字を一番大きく ---- */
-.hero {
-  padding: var(--fk-space-4) 0 var(--fk-space-2);
+/* 読み込みの間の金額：同じ大きさの薄い面（動かない） */
+.amount-wait {
+  border-radius: var(--fk-radius-xs, 6px);
+  background: color-mix(in srgb, var(--fk-ink) 8%, transparent);
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  user-select: none;
 }
-.hero-label {
+
+/* ---- 画面の重なり：タブの画面は消さずに隠しておく（スクロール位置と中身が残る） ---- */
+.panes {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.pane {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.26s var(--app-ease),
+    visibility 0s linear 0.16s;
+}
+.pane.is-active {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
+}
+/* 設定の画面は開くたびに描く */
+.pane--page {
+  transition: none;
+  animation: pane-in 0.26s var(--app-ease);
+}
+@keyframes pane-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ---- まとめの札（一画面に一枚だけのガラス） ---- */
+.summary {
+  margin-top: var(--fk-space-2);
+}
+.summary > .fk-glass-in {
+  padding: var(--fk-space-6) var(--fk-space-6) var(--fk-space-6);
+}
+.summary-label {
   margin: 0;
   font-size: 13px;
+  line-height: 20px;
+  font-weight: 700;
   color: var(--app-ink-muted);
 }
-.hero-amount {
-  margin: 0;
+.summary-amount {
+  margin: var(--fk-space-1) 0 0;
   font-family: var(--app-font-display);
-  font-size: clamp(40px, 12vw, 52px);
-  line-height: 1.15;
+  font-size: 46px;
+  line-height: 56px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  /* 合計の金額は差し色のグラデーションで（両端の色とも地に 4.5:1 以上） */
-  background: var(--app-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
-.hero-sub {
+.summary-amount > span {
+  display: inline-block;
+}
+.summary-state {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fk-space-1);
+  /* 2行ぶん取っておく（文の長さで下の帯が動かないように） */
+  min-height: 40px;
   margin: var(--fk-space-1) 0 0;
   font-size: 13px;
+  line-height: 20px;
   color: var(--app-ink-muted);
-  font-variant-numeric: tabular-nums;
+  word-break: auto-phrase;
 }
-
-.block {
-  padding: var(--fk-space-4) 0;
-}
-.block-head {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--fk-space-3);
-  margin-bottom: var(--fk-space-2);
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-}
-.block-title {
-  margin: 0 0 var(--fk-space-3);
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--app-ink-muted);
-}
-.sub-title {
-  margin: var(--fk-space-6) 0 var(--fk-space-2);
-  font-size: 13px;
+.summary-state.is-eaten {
+  color: var(--app-error);
   font-weight: 700;
 }
-.fk-groove {
-  margin: var(--fk-space-2) 0;
+.summary-state .fk-icon {
+  flex: none;
+}
+.summary .lead {
+  margin-bottom: var(--fk-space-6);
+}
+.summary .fk-button {
+  justify-content: center;
+  gap: var(--fk-space-1);
 }
 
-/* ---- 割合の受け皿（沈んだ溝に差し色が満ちる） ---- */
-.meter {
+/* 手取りの行き先の帯。左から「つかった」、右端に「ちょきん」。使いすぎると食い込む */
+.flow {
   position: relative;
-  height: 14px;
+  height: 24px;
+  margin-top: var(--fk-space-4);
   border-radius: var(--fk-radius-pill);
   background: var(--fk-dent);
   box-shadow:
@@ -150,127 +171,167 @@
     inset -3px -3px 7px var(--fk-light);
   overflow: hidden;
 }
-.meter-fill {
+.flow > span {
   position: absolute;
-  inset: 3px auto 3px 3px;
-  max-width: calc(100% - 6px);
-  border-radius: var(--fk-radius-pill);
-  background: var(--app-gradient);
-  /* 期間を送ったとき、棒が新しい長さへのびちぢみする */
-  transition: width 0.45s var(--app-ease);
+  top: 0;
+  bottom: 0;
+  transition:
+    width 0.5s var(--app-ease),
+    left 0.5s var(--app-ease);
 }
-.meter-fill--over {
+.flow-saving {
+  right: 0;
+  background: var(--fk-accent-gradient);
+}
+.flow-spent {
+  left: 0;
+  border-radius: 0 var(--fk-radius-pill) var(--fk-radius-pill) 0;
+  background: var(--app-spent);
+}
+.flow-over {
   background: var(--app-error);
 }
-
-/* ---- 金額の横棒 ---- */
-.bars {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.flow-legend {
   display: grid;
-  gap: var(--fk-space-1);
-}
-.bars-item {
-  display: grid;
-  gap: 6px;
-  width: 100%;
-  padding: var(--fk-space-2) 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-}
-.bars-item--link {
-  cursor: pointer;
-  border-radius: var(--fk-radius-xs);
-}
-.bars-item--link:active {
-  background: var(--app-accent-soft);
-}
-.bars-head {
-  display: flex;
-  justify-content: space-between;
+  grid-template-columns: 1fr 1fr auto;
   gap: var(--fk-space-3);
-  font-size: 14px;
+  margin: var(--fk-space-3) 0 0;
 }
-.bars-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bars-value {
-  flex: none;
-  font-weight: 700;
-}
-.bars-note {
-  display: inline-block;
-  min-width: 3em;
-  margin-left: var(--fk-space-2);
-  text-align: right;
-  font-weight: 400;
+.flow-legend dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 18px;
   color: var(--app-ink-muted);
 }
-.bars-track {
-  display: block;
-  height: 8px;
-  border-radius: var(--fk-radius-pill);
-  box-shadow:
-    inset 2px 2px 4px var(--fk-shade),
-    inset -2px -2px 4px var(--fk-light);
-  overflow: hidden;
+.flow-legend dd {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 700;
 }
-.bars-fill {
-  display: block;
-  height: 100%;
-  min-width: 4px;
-  border-radius: var(--fk-radius-pill);
-  background: var(--app-gradient);
-  /* 期間を送ったとき、棒が新しい長さへのびちぢみする */
-  transition: width 0.45s var(--app-ease);
+.flow-legend > div:last-child {
+  text-align: right;
+}
+.flow-legend > div:last-child dt {
+  justify-content: flex-end;
+}
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.swatch--spent {
+  background: var(--app-spent);
+}
+.swatch--left {
+  background: var(--fk-dent);
+  box-shadow:
+    inset 1px 1px 2px var(--fk-shade),
+    inset -1px -1px 2px var(--fk-light);
+}
+.swatch--saving {
+  background: var(--fk-accent-gradient);
 }
 
-/* ---- 支出の一覧 ---- */
-.expense-list {
+/* ---- 地に直接置くまとまり ---- */
+.today,
+.block {
+  margin-top: var(--fk-space-8);
+  padding: 0 var(--fk-space-2);
+}
+.block-head {
+  display: flex;
+  min-height: 22px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fk-space-3);
+}
+.block-title {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--app-ink-muted);
+}
+.block-value {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--app-ink-muted);
+}
+.today-amount {
+  display: flex;
+  align-items: baseline;
+  gap: var(--fk-space-2);
+  margin: var(--fk-space-1) 0 0;
+  font-family: var(--app-font-display);
+  font-size: 38px;
+  line-height: 48px;
+  font-weight: 600;
+}
+.today-prefix {
+  font-family: var(--app-font-body);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--app-ink-muted);
+}
+.today-note {
+  /* 2行ぶん取っておく */
+  min-height: 42px;
+  margin: var(--fk-space-1) 0 0;
+  font-size: 13px;
+  line-height: 21px;
+  color: var(--app-ink-muted);
+  word-break: auto-phrase;
+}
+.quiet {
+  margin: 0;
+  padding: 19px 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--app-ink-muted);
+}
+
+/* ---- 支出の一覧：行の高さは決めておく ---- */
+.expenses {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.expense-list > li + li {
+.expenses > li + li {
   background:
     linear-gradient(var(--fk-shade), var(--fk-shade)) top / 100% 1px no-repeat,
     linear-gradient(var(--fk-light), var(--fk-light)) 0 1px / 100% 1px no-repeat;
 }
-.expense-row {
+.expense {
   display: flex;
   align-items: center;
   gap: var(--fk-space-3);
   width: 100%;
-  min-height: 56px;
-  padding: var(--fk-space-2) 0;
+  height: 60px;
+  padding: 0;
   border: 0;
   background: none;
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
-}
-.expense-row:active {
-  background: var(--app-accent-soft);
+  -webkit-tap-highlight-color: transparent;
 }
 .expense-main {
   flex: 1;
   min-width: 0;
   display: grid;
-  gap: 2px;
 }
 .expense-category {
   font-size: 15px;
   line-height: 22px;
+  font-weight: 700;
+  transition: color 0.15s;
 }
-.expense-desc {
+.expense-note {
   font-size: 12px;
   line-height: 18px;
   color: var(--app-ink-muted);
@@ -279,42 +340,65 @@
   text-overflow: ellipsis;
 }
 .expense-amount {
-  flex: none;
+  font-size: 16px;
   font-weight: 700;
 }
+.expense:active .expense-category {
+  color: var(--fk-accent);
+}
 
-/* 履歴：日ごとのまとまり */
+/* ---- きろく ---- */
+.monthbar {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-3);
+  padding: var(--fk-space-2) var(--fk-space-2) 0;
+}
+.monthbar-label {
+  flex: 1;
+  margin: 0;
+  font-family: var(--app-font-display);
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.fk-icon-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.records > .chips {
+  margin-top: var(--fk-space-3);
+}
+.days {
+  padding: 0 var(--fk-space-2);
+  transition: opacity 0.2s;
+}
+.days.is-refreshing {
+  opacity: 0.4;
+}
 .day {
-  padding-top: var(--fk-space-4);
+  padding-top: var(--fk-space-6);
 }
 .day-head {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
+}
+.day-title {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 20px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--app-ink-muted);
 }
-
-/* 絞り込み・並び替え */
-.filters {
-  display: grid;
-  gap: var(--fk-space-2);
-  margin-bottom: var(--fk-space-2);
-}
-.filters-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--fk-space-2);
-}
-.filters-total {
+.day-total {
   font-size: 13px;
   color: var(--app-ink-muted);
 }
+.days > .quiet {
+  padding-top: calc(var(--fk-space-6) + 19px);
+}
 
-/* 選択肢のチップ：浮いていて、選んだものは沈んで差し色 */
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -324,7 +408,9 @@
 .chips--scroll {
   flex-wrap: nowrap;
   overflow-x: auto;
-  margin: 0 calc(var(--fk-space-4) * -1);
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  margin-inline: calc(var(--fk-space-4) * -1);
   padding: var(--fk-space-2) var(--fk-space-4) var(--fk-space-3);
   scrollbar-width: none;
 }
@@ -333,7 +419,10 @@
 }
 .chip {
   flex: none;
-  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
   padding: 0 var(--fk-space-4);
   border: 0;
   border-radius: var(--fk-radius-pill);
@@ -343,8 +432,13 @@
     -3px -3px 7px var(--fk-light);
   color: var(--fk-ink);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
+  white-space: nowrap;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    box-shadow 0.15s,
+    color 0.15s;
 }
 .chip[aria-pressed="true"] {
   background: var(--fk-dent);
@@ -354,8 +448,241 @@
   color: var(--fk-accent);
   font-weight: 700;
 }
+.chip-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--app-ink-muted);
+}
+.chip--add {
+  width: 40px;
+  padding: 0;
+  justify-content: center;
+}
 
-/* ---- 入力 ---- */
+/* ---- あゆみ ---- */
+.months {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.months > li + li {
+  background:
+    linear-gradient(var(--fk-shade), var(--fk-shade)) top / 100% 1px no-repeat,
+    linear-gradient(var(--fk-light), var(--fk-light)) 0 1px / 100% 1px no-repeat;
+}
+.month {
+  display: grid;
+  gap: var(--fk-space-2);
+  width: 100%;
+  padding: var(--fk-space-4) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.month-head {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-2);
+}
+.month-name {
+  flex: 1;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 700;
+}
+.month-reached {
+  color: var(--fk-accent);
+}
+.month-amount {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+}
+.month-track {
+  position: relative;
+  height: 12px;
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-dent);
+  box-shadow:
+    inset 2px 2px 5px var(--fk-shade),
+    inset -2px -2px 5px var(--fk-light);
+}
+.month-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  min-width: 12px;
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-accent-gradient);
+  transition: width 0.5s var(--app-ease);
+}
+/* 今月はまだ途中：輪郭だけ */
+.month-fill--open {
+  background: none;
+  box-shadow: inset 0 0 0 2px var(--fk-accent);
+}
+/* 目標の印 */
+.month-goal {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--fk-ink);
+}
+.month-note {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--app-ink-muted);
+  word-break: auto-phrase;
+}
+
+/* ---- 記録するシート ---- */
+.entry {
+  display: grid;
+  gap: var(--fk-space-3);
+}
+.entry > * {
+  min-width: 0;
+}
+.entry-top {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-3);
+  min-height: 56px;
+}
+.entry-amount {
+  flex: 1;
+  text-align: right;
+  font-family: var(--app-font-display);
+  font-size: 42px;
+  line-height: 56px;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+.entry-amount.is-empty {
+  color: color-mix(in srgb, var(--fk-ink) 35%, transparent);
+}
+.entry > .chips {
+  margin-top: 0;
+}
+/* 名前を打つ欄は、カテゴリーの並びと同じ高さ（切り替えても下が動かない） */
+.entry-naming {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-1);
+  height: 60px;
+}
+.entry-naming .fk-input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+}
+.entry > .chips--scroll {
+  height: 60px;
+  align-items: center;
+  padding-block: 0;
+}
+.entry-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-2);
+}
+.entry-date {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 48px;
+  padding: 0 var(--fk-space-4) 0 var(--fk-space-3);
+  border-radius: var(--fk-radius-field);
+  background: var(--fk-sheen);
+  box-shadow:
+    3px 3px 7px var(--fk-shade),
+    -3px -3px 7px var(--fk-light);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* 日付を選ぶ欄は見えない形で上に重ねる（押すと端末の暦が開く） */
+.entry-date input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.entry-date input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.entry-memo {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+}
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--fk-space-2);
+}
+.key {
+  display: grid;
+  place-items: center;
+  height: 54px;
+  border: 0;
+  border-radius: var(--fk-radius-button);
+  background: var(--fk-sheen);
+  box-shadow:
+    4px 4px 9px var(--fk-shade),
+    -4px -4px 9px var(--fk-light);
+  color: var(--fk-ink);
+  font: inherit;
+  font-size: 22px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.key:active {
+  background: var(--fk-dent);
+  box-shadow:
+    inset 3px 3px 7px var(--fk-shade),
+    inset -3px -3px 7px var(--fk-light);
+  color: var(--fk-accent);
+}
+/* 削除は主ボタンから離す */
+.entry-delete {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: var(--fk-space-4);
+  padding: 0 var(--fk-space-3);
+  border: 0;
+  background: none;
+  color: var(--app-error);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---- 入力（設定・レシート） ---- */
 .form {
   display: grid;
   gap: var(--fk-space-4);
@@ -363,6 +690,7 @@
 .field {
   display: grid;
   gap: var(--fk-space-1);
+  min-width: 0;
 }
 .field-label {
   font-size: 12px;
@@ -377,34 +705,6 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-select.fk-input {
-  -webkit-appearance: none;
-  appearance: none;
-}
-/* iPhone の Safari では日付欄が独自の幅を持ち、width や padding が効かずに画面からはみ出す。
-   見た目を標準のものから外し、幅を親に合わせ直す */
-input[type="date"].fk-input {
-  -webkit-appearance: none;
-  appearance: none;
-  display: block;
-  min-width: 0;
-  max-width: 100%;
-  height: 48px;
-  line-height: 46px;
-  padding-block: 0;
-  text-align: left;
-}
-input[type="date"].fk-input::-webkit-date-and-time-value {
-  margin: 0;
-  text-align: left;
-}
-input[type="date"].fk-input::-webkit-datetime-edit {
-  padding: 0;
-}
-/* 欄の幅が中身に引っぱられないように */
-.field {
-  min-width: 0;
-}
 .form-submit {
   margin-top: var(--fk-space-6);
 }
@@ -413,13 +713,39 @@ input[type="date"].fk-input::-webkit-datetime-edit {
   justify-content: space-between;
   gap: var(--fk-space-3);
 }
-.sheet-switch {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--fk-space-4);
+/* 貯金の計画：引き算の結果。高さを決めておく */
+.plan-result {
+  display: grid;
+  padding: var(--fk-space-2) 0 0;
+}
+.plan-result-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--app-ink-muted);
+}
+.plan-result-value {
+  font-family: var(--app-font-display);
+  font-size: 32px;
+  line-height: 44px;
+  font-weight: 600;
+}
+.plan-result-note {
+  min-height: 42px;
+  font-size: 13px;
+  line-height: 21px;
+  color: var(--app-ink-muted);
 }
 
 /* ---- レシート ---- */
+.receipt,
+.receipt-setup {
+  display: grid;
+  gap: var(--fk-space-2);
+}
+.receipt .link-button,
+.receipt-setup .link-button {
+  justify-self: center;
+}
 .receipt-pick {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -430,7 +756,7 @@ input[type="date"].fk-input::-webkit-datetime-edit {
 }
 .receipt-list {
   list-style: none;
-  margin: var(--fk-space-4) 0 0;
+  margin: 0;
   padding: 0;
 }
 .receipt-item {
@@ -468,19 +794,6 @@ input[type="date"].fk-input::-webkit-datetime-edit {
   align-items: center;
 }
 
-/* ---- 支出の詳細 ---- */
-.detail-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--fk-space-2) 0 var(--fk-space-4);
-}
-.detail-amount {
-  font-family: var(--app-font-display);
-  font-size: 34px;
-  font-weight: 600;
-}
-
 /* ---- ログイン：ボタンだけを画面の中ほどに ---- */
 .login {
   height: 100%;
@@ -496,180 +809,6 @@ input[type="date"].fk-input::-webkit-datetime-edit {
   font-size: 16px;
 }
 
-/* ---- 分析 ---- */
-.insight {
-  padding: var(--fk-space-6) 0;
-}
-.insight + .insight {
-  background:
-    linear-gradient(var(--fk-shade), var(--fk-shade)) top / 100% 1px no-repeat,
-    linear-gradient(var(--fk-light), var(--fk-light)) 0 1px / 100% 1px no-repeat;
-}
-.stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--fk-space-4);
-  margin-bottom: var(--fk-space-4);
-}
-.stat {
-  display: grid;
-  align-content: start;
-  gap: 2px;
-}
-.stat-label {
-  font-size: 12px;
-  color: var(--app-ink-muted);
-}
-.stat-value {
-  font-size: 22px;
-  line-height: 30px;
-  font-weight: 700;
-}
-.stat-sub {
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--app-ink-muted);
-  font-variant-numeric: tabular-nums;
-}
-.moves {
-  margin-top: var(--fk-space-4);
-}
-.moves-list {
-  list-style: none;
-  margin: var(--fk-space-1) 0 0;
-  padding: 0;
-}
-.moves-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--fk-space-3);
-  padding: 6px 0;
-  font-size: 14px;
-}
-.moves-list li + li {
-  background: linear-gradient(var(--fk-hair), var(--fk-hair)) top / 100% 1px no-repeat;
-}
-.moves-list .muted {
-  font-size: 12px;
-}
-
-.chart {
-  margin: 0;
-}
-.chart-plot {
-  margin-left: calc(var(--fk-space-2) * -1);
-}
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--fk-space-1) var(--fk-space-4);
-  margin-top: var(--fk-space-2);
-  font-size: 12px;
-  color: var(--app-ink-muted);
-  font-variant-numeric: tabular-nums;
-}
-.legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.legend-line {
-  display: inline-block;
-  width: 18px;
-  border-top-width: 2px;
-}
-
-/* 日別カレンダー：差し色1色の濃淡 */
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  text-align: center;
-}
-.calendar-weekday {
-  font-size: 11px;
-  color: var(--app-ink-muted);
-}
-.calendar-day {
-  aspect-ratio: 1;
-  border: 0;
-  border-radius: 10px;
-  font: inherit;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  color: var(--fk-ink);
-  cursor: pointer;
-}
-.calendar-day[aria-pressed="true"] {
-  outline: 2px solid var(--fk-ink);
-  outline-offset: 1px;
-}
-.lv0 {
-  background: var(--fk-dent);
-  box-shadow:
-    inset 2px 2px 4px var(--fk-shade),
-    inset -2px -2px 4px var(--fk-light);
-  color: var(--app-ink-muted);
-}
-.lv1 {
-  background: color-mix(in oklab, var(--fk-accent) 22%, var(--fk-ground));
-}
-.lv2 {
-  background: color-mix(in oklab, var(--fk-accent) 45%, var(--fk-ground));
-}
-.lv3 {
-  background: color-mix(in oklab, var(--fk-accent) 72%, var(--fk-ground));
-  color: var(--fk-on-accent);
-}
-.lv4 {
-  background: var(--fk-accent);
-  color: var(--fk-on-accent);
-  font-weight: 700;
-}
-.lv-future {
-  background: none;
-  color: var(--app-ink-muted);
-  opacity: 0.45;
-  cursor: default;
-}
-.calendar-scale {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  margin-top: var(--fk-space-2);
-  font-size: 11px;
-  color: var(--app-ink-muted);
-}
-.calendar-swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-}
-.calendar-detail {
-  margin-top: var(--fk-space-3);
-}
-.calendar-detail-head {
-  display: flex;
-  justify-content: space-between;
-  margin: 0;
-  font-weight: 700;
-}
-.calendar-items {
-  list-style: none;
-  margin: var(--fk-space-1) 0 0;
-  padding: 0;
-  font-size: 13px;
-  color: var(--app-ink-muted);
-}
-.calendar-items li {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--fk-space-3);
-  padding: 2px 0;
-}
-
 /* ---- 設定 ---- */
 .family-id {
   font-size: 22px;
@@ -682,57 +821,13 @@ input[type="date"].fk-input::-webkit-datetime-edit {
   font-weight: 700;
 }
 
-/* ---- ガラスの札（GlassPanel）：画面でいちばん見てほしいまとまりだけ ---- */
-.panel {
-  margin: var(--fk-space-2) 0 var(--fk-space-4);
-}
-.panel > .fk-glass-in {
-  padding: var(--fk-space-4) var(--fk-space-4) var(--fk-space-3);
-}
-.summary .hero {
-  padding-top: 0;
-}
-.summary .block {
-  padding-bottom: var(--fk-space-1);
-}
-/* ガラスの中では凹凸を使わない（凹凸は地の一部）。受け皿は薄い面と細い線で */
-.panel .meter,
-.panel .bars-track {
-  background: color-mix(in srgb, var(--fk-ink) 8%, transparent);
-  box-shadow: inset 0 0 0 1px var(--fk-hair);
-}
-.legend-line--gradient {
-  height: 3px;
-  border: 0;
-  border-radius: 2px;
-  background: var(--app-gradient);
-}
-
-/* ---- 最初の読み込みの間の、中身とほぼ同じ形の面（動かない） ---- */
-.skeleton {
-  display: grid;
-  gap: var(--fk-space-4);
-  padding: var(--fk-space-4) 0;
-}
-.skeleton-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 40px;
-}
-.skeleton-bar {
-  display: block;
-  height: 12px;
-  border-radius: var(--fk-radius-pill);
-  background: color-mix(in srgb, var(--fk-ink) 8%, transparent);
-}
-.skeleton-bar--short {
-  width: 18%;
-}
-.skeleton-panel {
-  height: 190px;
-}
-/* 予算などの数字が届いても札の高さが変わらないよう、最初から高さを確保する */
-.summary > .fk-glass-in {
-  min-height: 190px;
+@media (prefers-reduced-motion: reduce) {
+  .pane,
+  .pane--page,
+  .flow > span,
+  .month-fill,
+  .days {
+    transition: none;
+    animation: none;
+  }
 }

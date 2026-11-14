@@ -1,14 +1,13 @@
 // レシートの読み取り。撮る（カメラ）と選ぶ（写真）を並べ、何枚でもまとめて読める。
 // 読み取った内容は確かめてから保存する（間違いを直せるように、欄はそのまま編集できる）。
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import { useAuth } from "../auth/AuthProvider";
 import { addExpense } from "../data/expenses";
 import { useCategories } from "../data/hooks";
 import { readReceipt, waitBetweenRequests } from "../receipt/gemini";
 import { useGeminiSettings } from "../receipt/useGeminiSettings";
 import { Icon } from "../ui/Icon";
-import { draftToInput, ExpenseFields, type ExpenseDraft } from "./ExpenseForm";
+import { draftToInput, ReceiptFields, type ExpenseDraft } from "./ReceiptFields";
 import { todayInput } from "../data/expenses";
 
 type Item = {
@@ -23,11 +22,20 @@ type Item = {
 
 let seq = 0;
 
-export function ReceiptReader({ onSaved }: { onSaved: (count: number) => void }) {
+export function ReceiptReader({
+  onSaved,
+  onBack,
+  onSetup,
+}: {
+  onSaved: (count: number) => void;
+  /** 手で入れるほうへ戻る */
+  onBack: () => void;
+  /** API キーの登録へ進む */
+  onSetup: () => void;
+}) {
   const { familyId, user } = useAuth();
   const { apiKey, model } = useGeminiSettings();
   const categories = useCategories();
-  const navigate = useNavigate();
   const [items, setItems] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -108,8 +116,11 @@ export function ReceiptReader({ onSaved }: { onSaved: (count: number) => void })
           レシートの読み取りには、Google の Gemini API
           キーが要ります。キーはこの端末にだけ保存され、家族とも共有されません。
         </p>
-        <button className="fk-button fk-button--block" onClick={() => navigate("/settings/receipt")}>
+        <button className="fk-button fk-button--block" onClick={onSetup}>
           API キーを登録する
+        </button>
+        <button className="link-button" onClick={onBack}>
+          手で入れる
         </button>
       </div>
     );
@@ -142,7 +153,12 @@ export function ReceiptReader({ onSaved }: { onSaved: (count: number) => void })
         </label>
       </div>
       {items.length === 0 && (
-        <p className="hint">何枚でもまとめて読み取れます。読み取った内容は保存する前に直せます。</p>
+        <>
+          <p className="hint">何枚でもまとめて読み取れます。読み取った内容は保存する前に直せます。</p>
+          <button className="link-button" onClick={onBack}>
+            手で入れる
+          </button>
+        </>
       )}
 
       <ol className="receipt-list">
@@ -181,7 +197,7 @@ export function ReceiptReader({ onSaved }: { onSaved: (count: number) => void })
               </div>
             </div>
             {i.status === "done" && i.draft && (
-              <ExpenseFields draft={i.draft} onChange={(d) => patch(i.id, { draft: d })} idPrefix={i.id} />
+              <ReceiptFields draft={i.draft} onChange={(d) => patch(i.id, { draft: d })} idPrefix={i.id} />
             )}
           </li>
         ))}

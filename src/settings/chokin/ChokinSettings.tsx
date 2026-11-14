@@ -1,8 +1,11 @@
 // 設定画面のアプリ固有の区分（一番上）。家族で共有する設定と、この端末だけの設定。
-// 予算・固定費など中身のあるものは次の画面へ（›）、すぐ切り替わるものはその場で（スイッチ）。
+// 貯金の計画・固定費など中身のあるものは次の画面へ（›）、すぐ切り替わるものはその場で（スイッチ）。
 import { useAuth } from "../../auth/AuthProvider";
-import { useBudget, useFixedCosts } from "../../data/hooks";
-import { formatYen } from "../../lib/analytics";
+import { useFixedCosts } from "../../data/hooks";
+import { usePlans } from "../../data/plan";
+import { formatYen } from "../../lib/format";
+import { toMonthKey } from "../../lib/months";
+import { planFor } from "../../lib/savings";
 import { useGeminiSettings } from "../../receipt/useGeminiSettings";
 import { useFeedback } from "../../ui/Feedback";
 import { ActionRow, ControlRow, LinkRow, Section, Switch } from "../../ui/List";
@@ -10,7 +13,8 @@ import { useReminder } from "./useReminder";
 
 export function ChokinSettings() {
   const { user, familyId, displayName, signOut } = useAuth();
-  const { monthlyBudget } = useBudget();
+  const { plans } = usePlans();
+  const plan = planFor(plans, toMonthKey(new Date()));
   const { fixedCosts } = useFixedCosts();
   const { apiKey } = useGeminiSettings();
   const reminder = useReminder();
@@ -23,9 +27,9 @@ export function ChokinSettings() {
     <>
       <Section title="家計簿（家族で共有）">
         <LinkRow
-          label="月の予算"
-          value={monthlyBudget ? formatYen(monthlyBudget) : "未設定"}
-          to="/settings/budget"
+          label="貯金の計画"
+          value={plan ? `月 ${formatYen(plan.goal)} 貯める` : "未設定"}
+          to="/settings/plan"
         />
         <LinkRow
           label="固定費"

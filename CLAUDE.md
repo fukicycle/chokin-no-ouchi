@@ -6,20 +6,27 @@
 
 ## このアプリについて
 
-- **名前**：貯金のおうち（v2。v1 は React + Tailwind で GitHub Pages に公開していた）
-- **何をするアプリか（1文）**：家族で共有する家計簿。支出を記録し、予算・固定費・傾向を見て使いすぎを防ぐ
-- **使う人と、使う場面**：同じ家に住む家族。買い物の直後（レシートを撮る・手で入れる）と、月の途中・月末の振り返り
-- **一番よく行う操作**：支出を記録する（→ どのタブでも右下の［記録する］）
+- **名前**：貯金のおうち（v3。v1 は React + Tailwind、v2 は支出の記録と分析が中心だった。v3 は雛形から作り直し、Firebase のデータだけ引き継いだ）
+- **何をするアプリか（1文）**：先に貯金を取り分ける、家族で共有する家計簿。「今月の貯金は守れているか」「今日あといくら使えるか」「これまでにいくら貯まったか」が分かる
+- **使う人と、使う場面**：同じ家に住む家族。買う前（今日あといくら）、買い物の直後（記録する）、月末（貯まった額を見る）
+- **一番よく行う操作**：支出を記録する（→ タブの画面ではいつも右下の［記録する］。`AppShell` に一つだけ置く）
 - **公開先**：https://chokin.kotli-sharp.jp（Cloudflare Workers のカスタムドメイン。`wrangler.jsonc`）
-- **扱うデータと保存先**：Firebase Realtime Database（v1 と同じプロジェクト）。`users/{uid}`（家族 ID・通知の購読）、`expenses/{familyId}`、`fixedCosts/{familyId}`、`budgets/{familyId}`。ルールは `database.rules.json`（`firebase deploy --only database` で反映）。Gemini の API キーとモデルは端末（localStorage）だけ
+- **扱うデータと保存先**：Firebase Realtime Database（v1・v2 と同じプロジェクト・同じ場所）。`users/{uid}`（家族 ID・通知の購読）、`expenses/{familyId}`、`fixedCosts/{familyId}`、`budgets/{familyId}`。ルールは `database.rules.json`。Gemini の API キーとモデルは端末（localStorage）だけ
+  - **既存の場所の形は変えない。** v3 で足したのは `budgets/{familyId}/plans/{YYYY-MM}`（その月から有効な計画 `{ income, goal }`）だけ。`budgets/{familyId}/monthlyBudget` には「使えるお金（手取り − 貯めたい額）」を書いてそろえておく（v2 が読む）
 - **このアプリだけの決め事**：
-  - 画面は ホーム（`/`）・分析（`/insights`）・履歴（`/history`）の3タブ。見ている期間（月・年）は `src/data/period.tsx` で3タブ共通
-  - 固定費は `fixedCosts` のひな形から毎月自動で支出に記録する（`src/data/hooks.ts` の `useFixedCostSync`、計算は `src/lib/fixedCosts.ts`）。キーを `fixed_{id}_{YYYY-MM}` にして、家族の複数端末が同時に動いても二重に記録しない
-  - 集計の計算は `src/lib/analytics.ts` に置き、テストを書く。月末の見込みは「固定費＋変動費を今日までのペースで伸ばしたもの」
-  - 設定のアプリ固有の区分は `src/settings/chokin/`（予算・固定費・カテゴリーの整理・レシート・入力忘れのお知らせ・家族・ログアウト）
+  - **考え方は先取り貯金**：使えるお金 = 手取り − 貯めたい額。その月に貯まった額 = 手取り − 使った額。計算は `src/lib/savings.ts` に置き、テストを書く。いちばん古い計画の月から数え始め、それより前の月は数えない（収入の記録が無いので）
+  - **色の意味**：差し色のグラデーション（翡翠→縹）は「貯まるお金」と主ボタンだけ。使ったお金は文字の色、貯金に食い込んだ分は `--app-error`
+  - **画面**：ちょきん（`/`）・きろく（`/records`）・あゆみ（`/journey`）。何をどこに置くか・なぜかは、各画面のファイルの頭に書いてある。変えるときはそこも直す
+  - **スクロール位置**：タブの画面は一度開いたら消さずに隠す（`AppShell` の `.pane`、中身は `src/app/tabScreens.tsx`）。行き来しても位置・月・読み込んだ記録が残る。「きろく」は月や絞り込みを替えたときだけ一番上へ。設定の画面は画面ごとに位置を覚える
+  - **レイアウトを動かさない**：数字は届く前から同じ大きさを取る（`src/ui/Amount.tsx`）。文の長さが変わる所は行数ぶんの高さを決めておく。一覧の行は高さ固定。月を替えたときは新しい月が届くまで前の月を薄く残す（`useLive` の `keepPrevious`）
+  - **動き**：操作への返事だけ。数字は数え上げ、帯と棒は幅が伸び縮み、タブは沈みがすべる、シートはせり上がって戻る
+  - **記録のシート**（`src/entry/`）：金額は自前のテンキー（端末のキーボードを出さない）。書き込みを待たずに閉じ、トーストに［元に戻す］
+  - 固定費は `fixedCosts` のひな形から毎月自動で支出に記録する（`src/data/hooks.ts` の `useFixedCostSync`、計算は `src/lib/fixedCosts.ts`）。キーは `fixed_{id}_{YYYY-MM}`（v2 と同じ。家族の複数端末や v2 と同時に動いても二重に記録しない）。その月の分は月初に先の日付で記録されるので、「今日の分」には数えない
+  - 設定のアプリ固有の区分は `src/settings/chokin/`（貯金の計画・固定費・カテゴリーの整理・レシート・入力忘れのお知らせ・家族・ログアウト）
   - 入力忘れのお知らせは GitHub Actions（`daily-reminder.yml`）が毎晩 `scripts/send-reminders.cjs` を動かして Web Push で送る。受け取りは `public/push-sw.js`
-  - iPhone のホーム画面から開いたときの見え方を決める `index.html` の meta は、おまちかね・v2.0.0 と同じ形から変えない（`apple-mobile-web-app-capable`・`status-bar-style: default`・`theme-color` を昼夜の2つ）。`mobile-web-app-capable` を足す・`black-translucent` にする・`theme-color` を JS で書き換える、を入れた v2.1.0〜2.2.2 では画面の下端に黒い帯が出た。上端の帯が目立たないよう、地の1色目はほぼ白・ほぼ黒にする
-  - design は v0.2.0（色を持たない版）。色は `src/theme.css`、アプリの画面の見た目は `src/screens.css`
+  - iPhone のホーム画面から開いたときの見え方を決める `index.html` の meta は変えない（DESIGN.md 8「注意」）。地の1色目を変えたら `theme-color` と `vite.config.ts` の色もそろえる
+  - design は v0.3.2。色は `src/theme.css`、枠は `src/app/app.css`（雛形と同じ）、アプリの画面の見た目は `src/screens.css`
+  - テンキーの「1文字消す」の印は design にまだ無いので `src/entry/Keypad.tsx` に描いてある。design に足したら差し替える
 
 ## 共通の決め事（変えない）
 
