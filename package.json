@@ -14,7 +14,7 @@
     "deploy": "npm run release:check && npm run build && wrangler deploy"
   },
   "dependencies": {
-    "@fukicycle/design": "github:fukicycle/design#v0.3.2",
+    "@fukicycle/design": "github:fukicycle/design#v0.1.2",
     "firebase": "^12.19.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
