@@ -142,9 +142,10 @@ function Summary({
         </p>
 
         <Flow plan={plan} result={result} />
-        {special > 0 && (
-          <p className="summary-special">ほかに特別費 {formatYen(special)}（ここには数えていません）</p>
-        )}
+        {/* 特別費があった月だけ知らせる。場所はいつも取っておく（届いたときに下が動かないように） */}
+        <p className="summary-special">
+          {special > 0 ? `ほかに特別費 ${formatYen(special)}（ここには数えていません）` : "　"}
+        </p>
       </div>
     </section>
   );

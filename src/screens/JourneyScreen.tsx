@@ -3,10 +3,11 @@
 // 何をどこに置くか
 // - まとめの札（ガラスは一画面にこの一枚）：これまでに貯まったお金。締まった月（先月まで）の合計。
 //   特別費（車検・結婚式など）は、月ごとの判定には数えないが、ここからは引く（実際に出ていったお金なので）
-// - 月ごとの貯金：棒の長さは貯まった額、細い印は目標。印をこえた月には桜が付く。
-//   棒の色は差し色（＝貯まるお金の色）。今月はまだ途中なので、輪郭だけの棒にする
 // - つかったお金の推移：この12ヶ月。計画を立てる前の月も出る。棒は文字の色（＝使ったお金の色）、
-//   特別費は上に輪郭だけで積む。点線は今の「使えるお金」
+//   特別費は上に輪郭だけで積む。点線は今の「使えるお金」。高さが決まっているので札のすぐ下に置く
+// - 月ごとの貯金：棒の長さは貯まった額、細い印は目標。印をこえた月には桜が付く。
+//   棒の色は差し色（＝貯まるお金の色）。今月はまだ途中なので、輪郭だけの棒にする。
+//   月が増えるほど下へ伸びるので、いちばん下に置く（届いたときに上のものを押し下げない）
 // - どの月も、押すとその月の「きろく」が開く（「なぜ多かった？」を確かめに行ける）
 import { useNavigate } from "react-router";
 import { useExpensesInRange } from "../data/hooks";
@@ -101,6 +102,16 @@ export function JourneyScreen() {
         </section>
       )}
 
+      <section className="block">
+        <h2 className="block-title">つかったお金の推移</h2>
+        <Trend
+          months={spendingTrend(expenses, TREND_MONTHS, today)}
+          budget={plan ? budgetOf(plan) : 0}
+          loading={loading}
+          onOpen={open}
+        />
+      </section>
+
       {months.length > 0 && (
         <section className="block">
           <h2 className="block-title">月ごとの貯金</h2>
@@ -111,16 +122,6 @@ export function JourneyScreen() {
           </ol>
         </section>
       )}
-
-      <section className="block">
-        <h2 className="block-title">つかったお金の推移</h2>
-        <Trend
-          months={spendingTrend(expenses, TREND_MONTHS, today)}
-          budget={plan ? budgetOf(plan) : 0}
-          loading={loading}
-          onOpen={open}
-        />
-      </section>
     </div>
   );
 }

@@ -167,7 +167,8 @@
 }
 
 .summary-special {
-  margin: var(--fk-space-3) 0 0;
+  /* 札の下の余白に収める（無い月も札の高さは同じ） */
+  margin: var(--fk-space-2) 0 calc(var(--fk-space-3) * -1);
   font-size: 12px;
   line-height: 18px;
   color: var(--app-ink-muted);
