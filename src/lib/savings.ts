@@ -178,3 +178,70 @@ export const monthStart = (month: MonthKey) => {
   const { year, month: m } = parseMonthKey(month);
   return new Date(year, m - 1, 1);
 };
+
+export type DayShare = {
+  /** "YYYY-MM-DD" */
+  key: string;
+  day: number;
+  /** ふだんの支出（固定費・特別費を除く）。暦の升に満ちる分 */
+  normal: number;
+  /** その日付の固定費 */
+  fixed: number;
+  /** その日付の特別費 */
+  special: number;
+  /**
+   * その日の分（その日の朝の残り ÷ 月末までの日数）。「ちょきん」の「今日の分」と同じ数え方なので、
+   * 過去の日は「その日に画面で見ていた額」になる。計画がなければ null
+   */
+  share: number | null;
+  when: "past" | "today" | "future";
+};
+
+/**
+ * 暦の升ごとの数字。
+ * 固定費は月の初めにその月の分がすべて記録されるので、月の最初から残りの外にある（todayAllowance と同じ）。
+ * 特別費はどこにも数えない（印だけ付ける）。
+ */
+export const dailyShares = (
+  budget: number | null,
+  monthExpenses: Pick<Expense, "amount" | "date" | "isFixed" | "isSpecial">[],
+  year: number,
+  month: number,
+  today = new Date(),
+): DayShare[] => {
+  const days = daysInMonth(year, month);
+  const normal = new Map<number, number>();
+  const fixed = new Map<number, number>();
+  const special = new Map<number, number>();
+  let fixedTotal = 0;
+  for (const e of monthExpenses) {
+    const d = new Date(e.date);
+    if (d.getFullYear() !== year || d.getMonth() + 1 !== month) continue;
+    const amount = Number(e.amount) || 0;
+    const into = e.isSpecial ? special : e.isFixed ? fixed : normal;
+    into.set(d.getDate(), (into.get(d.getDate()) ?? 0) + amount);
+    if (e.isFixed && !e.isSpecial) fixedTotal += amount;
+  }
+  const todayKey = dayKey(today);
+  const result: DayShare[] = [];
+  let before = 0;
+  for (let day = 1; day <= days; day++) {
+    const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const spent = normal.get(day) ?? 0;
+    result.push({
+      key,
+      day,
+      normal: spent,
+      fixed: fixed.get(day) ?? 0,
+      special: special.get(day) ?? 0,
+      share:
+        budget === null ? null : Math.floor(Math.max(0, budget - fixedTotal - before) / (days - day + 1)),
+      when: key < todayKey ? "past" : key === todayKey ? "today" : "future",
+    });
+    before += spent;
+  }
+  return result;
+};
+
+/** 使わなかった日（過ぎた日で、ふだんの支出が 0 の日）の数 */
+export const quietDays = (days: DayShare[]) => days.filter((d) => d.when === "past" && d.normal === 0).length;

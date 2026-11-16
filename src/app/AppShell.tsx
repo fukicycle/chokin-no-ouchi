@@ -17,6 +17,8 @@ import { EntryProvider, useEntry } from "../entry/EntryProvider";
 import { NotificationsSheet } from "../notifications/NotificationsSheet";
 import { useNotifications } from "../notifications/NotificationsProvider";
 import { LoginScreen } from "../screens/LoginScreen";
+import { useRecordsView } from "../screens/recordsView";
+import { dayKey } from "../lib/format";
 import { Fab } from "../ui/Fab";
 import { Icon } from "../ui/Icon";
 import { tabScreens } from "./tabScreens";
@@ -51,6 +53,7 @@ function Shell() {
   const [noticesOpen, setNoticesOpen] = useState(false);
   const { hasUnread } = useNotifications();
   const { openNew } = useEntry();
+  const { focus } = useRecordsView();
   const location = useLocation();
   const navigate = useNavigate();
   const matches = useMatches();
@@ -60,6 +63,11 @@ function Shell() {
     .find(Boolean);
 
   const isRoot = rootPaths.includes(location.pathname);
+  // 「きろく」で選んでいる、今日より前の日
+  const backfill =
+    location.pathname === "/records" && focus?.kind === "day" && focus.key < dayKey(new Date())
+      ? focus.key
+      : null;
   const activeTab = tabs.findIndex((t) => t.path === location.pathname);
 
   // 一度開いたタブの画面は残しておく（最初から全部は描かない）
@@ -156,8 +164,15 @@ function Shell() {
 
       {user && <FixedCostSync />}
 
-      {/* 記録する：いちばん多い操作。タブの画面ではいつも右下（親指の届く所）の同じ位置に置く */}
-      {user && isRoot && <Fab label="記録する" onClick={openNew} />}
+      {/* 記録する：いちばん多い操作。タブの画面ではいつも右下（親指の届く所）の同じ位置に置く。
+          「きろく」の暦で今日より前の日を選んでいる間は、その日付で書き始める（書き忘れを後から入れる所）。
+          何が起きるか分かるよう、ラベルも「14日に記録」に変える */}
+      {user && isRoot && (
+        <Fab
+          label={backfill ? `${Number(backfill.slice(8))}日に記録` : "記録する"}
+          onClick={() => openNew(backfill ?? undefined)}
+        />
+      )}
 
       {/* 設定は別の場所として開くので、タブバーは出さない（戻るで元の画面へ） */}
       {isRoot && (

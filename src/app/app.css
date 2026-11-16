@@ -342,7 +342,8 @@ body {
   justify-items: center;
   align-items: end;
   background: color-mix(in srgb, var(--fk-ink) 28%, transparent);
-  animation: fade 0.15s ease;
+  /* 幕は opacity ではなく色で出し入れする（中のシート・ダイアログはガラス。DESIGN.md 6） */
+  animation: scrim-in 0.15s ease;
 }
 .scrim--dialog {
   padding: var(--fk-space-3) var(--fk-space-3) calc(var(--fk-space-3) + env(safe-area-inset-bottom));
@@ -404,6 +405,11 @@ body {
 .dialog {
   width: min(420px, 100%);
   animation: pop-in 0.22s var(--app-ease);
+}
+/* ダイアログ自身はガラスなので、薄くするのは面と中身（DESIGN.md 6） */
+.dialog > .fk-glass-bd,
+.dialog > .fk-glass-in {
+  animation: fade 0.22s ease;
 }
 .dialog > .fk-glass-in {
   padding: var(--fk-space-6) var(--fk-space-4) var(--fk-space-4);
@@ -621,44 +627,7 @@ body {
   width: 44px;
 }
 
-.switch {
-  position: relative;
-  flex: none;
-  width: 52px;
-  height: 30px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--fk-radius-pill);
-  background: var(--fk-dent);
-  box-shadow:
-    inset 3px 3px 7px var(--fk-shade),
-    inset -3px -3px 7px var(--fk-light);
-  cursor: pointer;
-}
-.switch::before {
-  content: "";
-  position: absolute;
-  inset: -8px -2px;
-}
-.switch-knob {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--fk-ground);
-  box-shadow:
-    2px 2px 5px var(--fk-shade),
-    -1px -1px 3px var(--fk-light);
-  transition: transform 0.15s;
-}
-.switch[aria-checked="true"] {
-  background: var(--fk-accent);
-}
-.switch[aria-checked="true"] .switch-knob {
-  transform: translateX(22px);
-}
+/* スイッチは design の .fk-switch（v0.4.0） */
 
 /* ---- リリースノート ---- */
 .history {
@@ -802,14 +771,22 @@ body {
 }
 @keyframes pop-in {
   from {
-    opacity: 0;
     transform: translateY(8px) scale(0.97);
   }
 }
 @keyframes pop-out {
   to {
-    opacity: 0;
     transform: translateY(8px) scale(0.97);
+  }
+}
+@keyframes scrim-in {
+  from {
+    background-color: transparent;
+  }
+}
+@keyframes scrim-out {
+  to {
+    background-color: transparent;
   }
 }
 @keyframes fade-out {
@@ -824,21 +801,27 @@ body {
   }
 }
 
-/* 画面を切り替えたとき、中身がふわっと出る（タブ・設定の行・戻る） */
-.shell-main > .page {
-  animation: page-in 0.26s var(--app-ease);
-}
+/* 画面を切り替えたときの動きは screens.css の .pane（タブの画面はガラスを含むので opacity を動かさない） */
 
 /* シート・ダイアログ・トーストは、いきなり消さずに戻ってから消える */
 .scrim.is-leaving {
-  animation: fade-out 0.2s ease-in forwards;
+  animation: scrim-out 0.2s ease-in forwards;
 }
 .scrim.is-leaving .sheet {
   animation: sheet-out 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
-.scrim.is-leaving .dialog,
-.toast.is-leaving {
+.scrim.is-leaving .dialog {
   animation: pop-out 0.18s ease-in forwards;
+}
+.scrim.is-leaving .dialog > .fk-glass-bd,
+.scrim.is-leaving .dialog > .fk-glass-in {
+  animation: fade-out 0.18s ease-in forwards;
+}
+/* トーストはガラスではないので、そのまま薄くしてよい */
+.toast.is-leaving {
+  animation:
+    pop-out 0.18s ease-in forwards,
+    fade-out 0.18s ease-in forwards;
 }
 
 /* 押したものは、すっと沈んで戻る */
@@ -847,7 +830,6 @@ body {
 .fab,
 .chip,
 .choice button,
-.switch,
 .row--link,
 .row--action,
 .expense-row,

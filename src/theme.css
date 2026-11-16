@@ -68,6 +68,9 @@
 /* 色から作るもの（昼・夜とも上の変数から計算する） */
 :root {
   --app-accent-soft: color-mix(in srgb, var(--fk-accent) 14%, transparent);
-  /* 使ったお金の面（帯・棒）。文字の色を薄めて作る */
-  --app-spent: color-mix(in srgb, var(--fk-ink) 62%, transparent);
+  /* 使ったお金の面（帯・棒）。文字の色を薄めた薄墨。濃くすると画面全体が重く沈むので、半分ほどに留める */
+  --app-spent: color-mix(in srgb, var(--fk-ink) 44%, transparent);
+  /* 暦の升に満ちる薄墨（その日の分の中）と、満ちきった升（その日の分をこえた日） */
+  --app-spent-wash: color-mix(in srgb, var(--fk-ink) 11%, transparent);
+  --app-spent-full: color-mix(in srgb, var(--fk-ink) 21%, transparent);
 }

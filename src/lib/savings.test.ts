@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  dailyShares,
+  quietDays,
   journey,
   monthResult,
   planFor,
@@ -135,5 +137,41 @@ describe("あゆみ", () => {
   });
   it("計画がなければ空", () => {
     expect(journey({}, [])).toEqual([]);
+  });
+});
+
+describe("暦の升", () => {
+  const exps = [
+    { amount: 80000, date: at(2026, 11, 27), isFixed: true },
+    { amount: 3000, date: at(2026, 11, 1) },
+    { amount: 2000, date: at(2026, 11, 2) },
+    { amount: 1000, date: at(2026, 11, 2) },
+    { amount: 30000, date: at(2026, 11, 3), isSpecial: true },
+    { amount: 999, date: at(2026, 10, 31) },
+  ];
+  const days = dailyShares(170000, exps, 2026, 11, new Date(2026, 10, 4, 9));
+
+  it("その月の日数だけ並び、ふだん・固定費・特別費を分けて数える", () => {
+    expect(days).toHaveLength(30);
+    expect(days[1]).toMatchObject({ key: "2026-11-02", normal: 3000, fixed: 0, special: 0 });
+    expect(days[2]).toMatchObject({ normal: 0, special: 30000 });
+    expect(days[26]).toMatchObject({ normal: 0, fixed: 80000 });
+  });
+  it("その日の分は、固定費を先に引いた残りを、その朝から月末までの日数で割る", () => {
+    // 1日：(170000 − 80000) ÷ 30
+    expect(days[0].share).toBe(3000);
+    // 3日：(90000 − 6000) ÷ 28
+    expect(days[2].share).toBe(3000);
+  });
+  it("ちょきんの「今日の分」と同じ額になる", () => {
+    const today = new Date(2026, 10, 4, 9);
+    expect(days[3].share).toBe(todayAllowance(170000, exps.slice(0, 5), today).perDay);
+  });
+  it("過ぎた日でふだんの支出が無い日を、使わなかった日として数える（特別費だけの日も含む）", () => {
+    expect(days.map((d) => d.when).slice(2, 5)).toEqual(["past", "today", "future"]);
+    expect(quietDays(days)).toBe(1);
+  });
+  it("計画が無ければ、その日の分は無い", () => {
+    expect(dailyShares(null, exps, 2026, 11)[0].share).toBeNull();
   });
 });

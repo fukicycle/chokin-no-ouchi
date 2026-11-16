@@ -9,7 +9,7 @@ import { EmptyState } from "../../ui/EmptyState";
 import { Fab } from "../../ui/Fab";
 import { useFeedback } from "../../ui/Feedback";
 import { Icon } from "../../ui/Icon";
-import { ActionRow, ControlRow, Section, Switch } from "../../ui/List";
+import { ActionRow, Choice, ControlRow, Section } from "../../ui/List";
 import { Sheet } from "../../ui/Sheet";
 
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -119,14 +119,28 @@ function FixedCostSheet({ target, onClose }: { target: FixedCost | "new"; onClos
           </select>
         </label>
         <Section>
+          {/* 保存ボタンを押してから効く選択なので、スイッチではなく2つから選ぶ（DESIGN.md 4「状態の部品の決まり」） */}
           <ControlRow
-            label={isNew ? "今月分から記録する" : "記録済みの今月分も直す"}
-            description={isNew ? "外すと来月から記録します" : "今月の金額だけ違うときは外してください"}
+            label={isNew ? "記録を始める月" : "記録済みの今月分"}
+            description={
+              isNew ? "来月からにすると、今月分は記録しません" : "今月だけ金額が違うときは「そのまま」"
+            }
           >
-            <Switch
-              label={isNew ? "今月分から記録する" : "記録済みの今月分も直す"}
-              checked={thisMonth}
-              onChange={setThisMonth}
+            <Choice
+              label={isNew ? "記録を始める月" : "記録済みの今月分"}
+              value={thisMonth ? "yes" : "no"}
+              options={
+                isNew
+                  ? [
+                      { value: "yes", label: "今月から" },
+                      { value: "no", label: "来月から" },
+                    ]
+                  : [
+                      { value: "yes", label: "直す" },
+                      { value: "no", label: "そのまま" },
+                    ]
+              }
+              onChange={(v) => setThisMonth(v === "yes")}
             />
           </ControlRow>
         </Section>
