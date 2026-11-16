@@ -306,6 +306,40 @@
   color: var(--app-ink-muted);
   word-break: auto-phrase;
 }
+/* 月末の見込み：あゆみの月ごとの棒と同じ形（棒＝貯まる額、細い印＝目標） */
+.outlook-amount {
+  margin: var(--fk-space-1) 0 var(--fk-space-3);
+  font-family: var(--app-font-display);
+  font-size: 30px;
+  line-height: 40px;
+  font-weight: 600;
+}
+.outlook-saving {
+  color: var(--fk-accent);
+}
+.outlook-track {
+  display: block;
+}
+/* 上乗せの見込み：まだ決まっていないので輪郭だけ（あゆみの「途中」の月と同じ） */
+.outlook-extra {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin-left: 3px;
+  border-radius: var(--fk-radius-pill);
+  box-shadow: inset 0 0 0 2px var(--fk-accent);
+  transition:
+    width 0.5s var(--app-ease),
+    left 0.5s var(--app-ease);
+}
+.today-note.is-short {
+  color: var(--fk-ink);
+}
+.outlook-track + .today-note {
+  min-height: 63px;
+  margin-top: var(--fk-space-2);
+}
+
 .quiet {
   margin: 0;
   padding: 19px 0;
@@ -712,6 +746,123 @@
   height: 11px;
   border-radius: 50%;
   box-shadow: inset 0 0 0 1.6px var(--fk-accent);
+}
+
+.cal-mark--note {
+  width: 8px;
+  height: 2px;
+  margin-top: 2px;
+  border-radius: 1px;
+  background: var(--fk-ink);
+}
+.sub-title {
+  margin: var(--fk-space-4) 0 var(--fk-space-1);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 700;
+  color: var(--app-ink-muted);
+}
+
+/* この月のメモ：日付と一行。押すとその日へ */
+.memos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.memos > li + li {
+  background:
+    linear-gradient(var(--fk-shade), var(--fk-shade)) top / 100% 1px no-repeat,
+    linear-gradient(var(--fk-light), var(--fk-light)) 0 1px / 100% 1px no-repeat;
+}
+.memo {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-3);
+  width: 100%;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.memo-day {
+  flex: none;
+  width: 3em;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-ink-muted);
+}
+.memo-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* その日のメモ：沈んだ受け皿に書いた文。押すと直せる */
+.day-memo,
+.day-memo-add {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fk-space-2);
+  width: 100%;
+  margin: var(--fk-space-1) 0 var(--fk-space-2);
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.day-memo {
+  padding: var(--fk-space-3) var(--fk-space-3) var(--fk-space-3) var(--fk-space-4);
+  border-radius: var(--fk-radius-field);
+  background: var(--fk-dent);
+  box-shadow:
+    inset 2px 2px 6px var(--fk-shade),
+    inset -2px -2px 6px var(--fk-light);
+  color: var(--fk-ink);
+}
+.day-memo-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 24px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.day-memo .fk-icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--app-ink-muted);
+}
+.day-memo-add {
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  color: var(--fk-accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+.note-form {
+  display: grid;
+  gap: var(--fk-space-2);
+}
+.note-input {
+  min-height: 112px;
+  padding: var(--fk-space-3);
+  line-height: 24px;
+  resize: none;
+}
+.note-form .fk-button {
+  margin-top: var(--fk-space-2);
 }
 
 /* カテゴリーごとの合計。行の下に細い棒（いちばん多いカテゴリーに対する割合） */

@@ -245,3 +245,34 @@ export const dailyShares = (
 
 /** 使わなかった日（過ぎた日で、ふだんの支出が 0 の日）の数 */
 export const quietDays = (days: DayShare[]) => days.filter((d) => d.when === "past" && d.normal === 0).length;
+
+export type Outlook = {
+  /** 今日までの日数（今日を含む） */
+  elapsed: number;
+  days: number;
+  /** このままのペースで使ったときの、月の使ったお金（固定費を含む。特別費は含めない） */
+  spent: number;
+  /** 月末に貯まる見込み（手取り − 使ったお金の見込み） */
+  saved: number;
+  /** 目標との差（プラスなら目標より多い） */
+  diff: number;
+};
+
+/**
+ * 月末の見込み。ふだんの支出だけを「今日までのペース」で月末まで伸ばし、固定費はそのまま足す
+ * （固定費は月の初めに全部記録されるので、伸ばすと二重に数えてしまう）。特別費は数えない。
+ */
+export const monthOutlook = (
+  plan: Plan,
+  monthExpenses: Pick<Expense, "amount" | "isFixed" | "isSpecial">[],
+  today = new Date(),
+): Outlook => {
+  const days = daysInMonth(today.getFullYear(), today.getMonth() + 1);
+  const elapsed = today.getDate();
+  const normal = monthExpenses.filter((e) => !e.isSpecial);
+  const fixed = sumAmount(normal.filter((e) => e.isFixed));
+  const variable = sumAmount(normal.filter((e) => !e.isFixed));
+  const spent = fixed + Math.round((variable / elapsed) * days);
+  const saved = plan.income - spent;
+  return { elapsed, days, spent, saved, diff: saved - plan.goal };
+};

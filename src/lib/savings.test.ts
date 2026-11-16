@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   dailyShares,
+  monthOutlook,
   quietDays,
   journey,
   monthResult,
@@ -173,5 +174,23 @@ describe("暦の升", () => {
   });
   it("計画が無ければ、その日の分は無い", () => {
     expect(dailyShares(null, exps, 2026, 11)[0].share).toBeNull();
+  });
+});
+
+describe("月末の見込み", () => {
+  const plan = { income: 300000, goal: 50000 };
+  it("ふだんの支出だけを今日までのペースで伸ばし、固定費と特別費は伸ばさない", () => {
+    const o = monthOutlook(
+      plan,
+      [{ amount: 80000, isFixed: true }, { amount: 30000 }, { amount: 100000, isSpecial: true }],
+      new Date(2026, 10, 10, 12),
+    );
+    // 30000 ÷ 10日 × 30日 = 90000、＋ 固定費 80000
+    expect(o).toMatchObject({ elapsed: 10, days: 30, spent: 170000, saved: 130000, diff: 80000 });
+  });
+  it("ペースが速ければ、目標に届かない見込みになる", () => {
+    const o = monthOutlook(plan, [{ amount: 100000 }], new Date(2026, 10, 10, 12));
+    expect(o.saved).toBe(0);
+    expect(o.diff).toBe(-50000);
   });
 });

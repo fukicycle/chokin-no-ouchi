@@ -11,13 +11,17 @@
 // - 下はスクロールする一覧。暦で選んでいるものによって中身が替わる
 //   ・何も選んでいない：その月のまとめ（ふだん・固定費・使わなかった日、カテゴリーごとの合計）。
 //     カテゴリーを押すと、そのカテゴリーの記録だけになり、暦は記録の無い日が薄くなる
-//   ・日を押した：その日の記録と、その日の分に対してどうだったか。もう一度押すか × で、まとめに戻る
+//   ・日を押した：その日のメモ、その日の分に対してどうだったか、その日の記録。もう一度押すか × で、まとめに戻る
+// - 日ごとのメモ（旅行・帰省・お祝いなど）：「なぜこの日は多かったか」を振り返るため。
+//   書くのは日を選んだときだけ（その日を見ているときに書きたくなる）。記録より上に置く（その日の説明なので先に読む）。
+//   月のまとめには「この月のメモ」を日付順に並べ、押すとその日へ。暦ではメモのある日に小さな線の印
 // - 日を選んでいる間は、右下の［記録する］が「その日に記録」になる（AppShell）。書き忘れを後から入れる所
 // - 行を押すと直せる（右端の › が押せる合図）
 // - 月や選んだものを替えたら一覧は一番上から。タブを行き来しただけなら、見ていた位置のまま
 // - 月を替えたとき、新しい月が届くまでは前の月を薄くして残す（空の画面を一瞬はさまない）
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useExpensesInRange } from "../data/hooks";
+import { useDayNotes, type DayNote, type DayNotes } from "../data/notes";
 import { usePlans } from "../data/plan";
 import type { Expense } from "../data/types";
 import { dayKey, formatDay, formatYen } from "../lib/format";
@@ -28,6 +32,7 @@ import { Amount } from "../ui/Amount";
 import { ExpenseRow } from "../ui/ExpenseRow";
 import { Icon } from "../ui/Icon";
 import { Calendar } from "./Calendar";
+import { NoteSheet } from "./NoteSheet";
 import { SPECIAL, useRecordsView, type Focus } from "./recordsView";
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
@@ -39,6 +44,14 @@ export function RecordsScreen() {
   const { start, end } = monthRange(year, m);
   const { expenses, loading, refreshing } = useExpensesInRange(start, end);
   const { plans } = usePlans();
+  const { value: notes } = useDayNotes(month);
+  // メモのシート。seq は開くたびに増やす（前に打ちかけた内容を持ち越さない）
+  const [noteTarget, setNoteTarget] = useState<{ seq: number; key: string } | null>(null);
+  const [noteOpen, setNoteOpen] = useState(false);
+  const openNote = (key: string) => {
+    setNoteTarget((t) => ({ seq: (t?.seq ?? 0) + 1, key }));
+    setNoteOpen(true);
+  };
   const plan = planFor(plans, month);
   const isCurrent = month >= toMonthKey(dayKeyToDate(todayKey));
 
@@ -112,6 +125,7 @@ export function RecordsScreen() {
           days={days}
           selected={shown?.kind === "day" ? shown.key : null}
           dimmed={dimmed}
+          noted={notes}
           loading={loading}
           onPick={pickDay}
         />
@@ -123,6 +137,8 @@ export function RecordsScreen() {
             <DayView
               day={days.find((d) => d.key === shown.key)!}
               expenses={expenses}
+              note={notes[shown.key]}
+              onNote={() => openNote(shown.key)}
               onClose={() => setFocus(null)}
             />
           ) : shown?.kind === "category" ? (
@@ -138,14 +154,33 @@ export function RecordsScreen() {
               expenses={expenses}
               loading={loading}
               hasPlan={plan !== null}
+              notes={notes}
               onCategory={(name) => setFocus({ kind: "category", name })}
+              onDay={(key) => setFocus({ kind: "day", key })}
             />
           )}
         </div>
       </div>
+
+      {noteTarget && (
+        <NoteSheet
+          key={noteTarget.seq}
+          dayKey={noteTarget.key}
+          label={dayLabel(noteTarget.key)}
+          note={notes[noteTarget.key]}
+          open={noteOpen}
+          onClose={() => setNoteOpen(false)}
+        />
+      )}
     </div>
   );
 }
+
+/** 「11月14日（土）」 */
+const dayLabel = (key: string) => {
+  const d = dayKeyToDate(key);
+  return `${d.getMonth() + 1}月${d.getDate()}日（${WEEKDAYS[d.getDay()]}）`;
+};
 
 /** 何も選んでいないとき：その月のまとめ */
 function MonthView({
@@ -154,15 +189,20 @@ function MonthView({
   expenses,
   loading,
   hasPlan,
+  notes,
   onCategory,
+  onDay,
 }: {
   month: number;
   days: DayShare[];
   expenses: Expense[];
   loading: boolean;
   hasPlan: boolean;
+  notes: DayNotes;
   onCategory: (name: string) => void;
+  onDay: (key: string) => void;
 }) {
+  const memos = Object.entries(notes).sort(([a], [b]) => a.localeCompare(b));
   const normal = sumAmount(expenses.filter((e) => !e.isFixed && !e.isSpecial));
   const fixed = sumAmount(expenses.filter((e) => e.isFixed && !e.isSpecial));
   const special = sumAmount(expenses.filter((e) => e.isSpecial));
@@ -208,6 +248,24 @@ function MonthView({
         </div>
       </dl>
 
+      {memos.length > 0 && (
+        <>
+          <h4 className="sub-title">この月のメモ</h4>
+          <ul className="memos">
+            {memos.map(([key, n]) => (
+              <li key={key}>
+                <button className="memo" onClick={() => onDay(key)}>
+                  <span className="memo-day">{Number(key.slice(8))}日</span>
+                  <span className="memo-text">{n.text}</span>
+                  <Icon name="forward" size="sm" className="row-go" />
+                </button>
+              </li>
+            ))}
+          </ul>
+          <h4 className="sub-title">カテゴリー</h4>
+        </>
+      )}
+
       {categories.length > 0 && (
         <ul className="cats" aria-label="カテゴリーごとの合計">
           {categories.map(([name, total]) => (
@@ -247,17 +305,33 @@ function MonthView({
           <i className="cal-mark cal-mark--special" aria-hidden="true" />
           特別費
         </span>
+        <span>
+          <i className="cal-mark cal-mark--note" aria-hidden="true" />
+          メモ
+        </span>
       </p>
     </section>
   );
 }
 
 /** 日を選んだとき：その日の記録と、その日の分に対してどうだったか */
-function DayView({ day, expenses, onClose }: { day: DayShare; expenses: Expense[]; onClose: () => void }) {
+function DayView({
+  day,
+  expenses,
+  note: memo,
+  onNote,
+  onClose,
+}: {
+  day: DayShare;
+  expenses: Expense[];
+  note: DayNote | undefined;
+  onNote: () => void;
+  onClose: () => void;
+}) {
   const items = expenses.filter((e) => dayKey(new Date(e.date)) === day.key);
   const date = dayKeyToDate(day.key);
   const word = day.when === "today" ? "今日" : "この日";
-  const note =
+  const verdict =
     day.when === "future"
       ? "まだ先の日です"
       : day.share === null
@@ -284,8 +358,19 @@ function DayView({ day, expenses, onClose }: { day: DayShare; expenses: Expense[
           <Icon name="close" />
         </button>
       </div>
+      {memo ? (
+        <button className="day-memo" onClick={onNote} aria-label={`この日のメモを直す：${memo.text}`}>
+          <span className="day-memo-text">{memo.text}</span>
+          <Icon name="edit" size="sm" />
+        </button>
+      ) : (
+        <button className="day-memo-add" onClick={onNote}>
+          <Icon name="edit" size="sm" />
+          この日のメモを書く
+        </button>
+      )}
       <p className={day.share !== null && day.normal > day.share ? "view-note is-over" : "view-note"}>
-        {note}
+        {verdict}
       </p>
       {items.length > 0 ? (
         <ul className="expenses">

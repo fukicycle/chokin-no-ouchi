@@ -5,7 +5,8 @@
 //   満ちきった升は、その日の分をこえた日（金額も太くなる）
 // - 日付の翡翠の輪：使わなかった日（過ぎた日で、ふだんの支出が 0）。紙の家計簿で丸をつけるのと同じ
 // - 日付の墨の丸：今日
-// - 右上の小さな印：固定費（塗った点）・特別費（輪郭だけの点。帯や棒と同じく、輪郭で「数えていない」ことを示す）
+// - 右上の小さな印：固定費（塗った点）・特別費（輪郭だけの点。帯や棒と同じく、輪郭で「数えていない」ことを示す）・
+//   メモ（短い線。書き込みがある日）
 // - 選んでいる升は沈めて、文字を差し色にする（DESIGN.md 1-6）
 //
 // 段の数はその月に要るだけ（たいてい5段）。6段に固定すると、ほとんどの月で翌月の日だけの段が残り、
@@ -38,6 +39,7 @@ export function Calendar({
   days,
   selected,
   dimmed,
+  noted,
   loading,
   onPick,
 }: {
@@ -48,6 +50,8 @@ export function Calendar({
   selected: string | null;
   /** カテゴリーで絞っているとき、そのカテゴリーの記録が無い日 */
   dimmed: Set<string> | null;
+  /** メモのある日（キーは "YYYY-MM-DD"） */
+  noted: Record<string, unknown>;
   loading: boolean;
   onPick: (key: string) => void;
 }) {
@@ -101,6 +105,7 @@ export function Calendar({
             quiet && "使わなかった日",
             d.fixed > 0 && `固定費 ${formatYen(d.fixed)}`,
             d.special > 0 && `特別費 ${formatYen(d.special)}`,
+            Boolean(noted[d.key]) && "メモあり",
           ]
             .filter(Boolean)
             .join("、");
@@ -114,8 +119,9 @@ export function Calendar({
               onClick={() => onPick(d.key)}
             >
               <span className="cal-num">{d.day}</span>
-              {(d.fixed > 0 || d.special > 0) && (
+              {(d.fixed > 0 || d.special > 0 || Boolean(noted[d.key])) && (
                 <span className="cal-marks" aria-hidden="true">
+                  {Boolean(noted[d.key]) && <i className="cal-mark cal-mark--note" />}
                   {d.fixed > 0 && <i className="cal-mark cal-mark--fixed" />}
                   {d.special > 0 && <i className="cal-mark cal-mark--special" />}
                 </span>
