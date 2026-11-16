@@ -34,9 +34,9 @@ import { ReceiptReader } from "./ReceiptReader";
 // まだ記録が少ないうちに並べておく候補
 const STARTER_CATEGORIES = ["食費", "日用品", "外食", "交通", "趣味・娯楽", "医療", "その他"];
 
-type Props = { open: boolean; expense: Expense | null; onClose: () => void };
+type Props = { open: boolean; expense: Expense | null; date?: string; onClose: () => void };
 
-export function EntrySheet({ open, expense, onClose }: Props) {
+export function EntrySheet({ open, expense, date, onClose }: Props) {
   const [mode, setMode] = useState<"keys" | "receipt">("keys");
   const { toast } = useFeedback();
   const navigate = useNavigate();
@@ -56,7 +56,13 @@ export function EntrySheet({ open, expense, onClose }: Props) {
           }}
         />
       ) : (
-        <EntryForm expense={expense} active={open} onClose={onClose} onReceipt={() => setMode("receipt")} />
+        <EntryForm
+          expense={expense}
+          initialDate={date}
+          active={open}
+          onClose={onClose}
+          onReceipt={() => setMode("receipt")}
+        />
       )}
     </Sheet>
   );
@@ -64,11 +70,13 @@ export function EntrySheet({ open, expense, onClose }: Props) {
 
 function EntryForm({
   expense,
+  initialDate,
   active,
   onClose,
   onReceipt,
 }: {
   expense: Expense | null;
+  initialDate?: string;
   active: boolean;
   onClose: () => void;
   onReceipt: () => void;
@@ -78,7 +86,7 @@ function EntryForm({
   const used = useCategories();
   const [amount, setAmount] = useState(expense ? String(expense.amount) : "");
   const [category, setCategory] = useState(expense?.category ?? "");
-  const [date, setDate] = useState(expense ? isoToDateInput(expense.date) : todayInput());
+  const [date, setDate] = useState(expense ? isoToDateInput(expense.date) : (initialDate ?? todayInput()));
   const [memo, setMemo] = useState(expense?.description ?? "");
   const [naming, setNaming] = useState(false);
   const [special, setSpecial] = useState(Boolean(expense?.isSpecial));
@@ -162,7 +170,8 @@ function EntryForm({
           </button>
         )}
         <output className={value > 0 ? "entry-amount" : "entry-amount is-empty"} aria-label="金額">
-          {formatYen(value)}
+          <span className="yen">¥</span>
+          {value.toLocaleString("ja-JP")}
         </output>
       </div>
 

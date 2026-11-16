@@ -160,13 +160,12 @@ export function Switch({
 }) {
   return (
     <button
-      className="switch"
+      type="button"
+      className="fk-switch"
       role="switch"
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-    >
-      <span className="switch-knob" />
-    </button>
+    />
   );
 }

@@ -1,4 +1,8 @@
-// ちょきん：開いてすぐ「今月の貯金は守れているか」と「今日あといくら使えるか」が分かる画面。
+// ちょきん：貯金だけを見る画面。開いてすぐ「今月の貯金は守れているか」「今日あといくら使えるか」
+// 「このままだと月末にいくら貯まるか」が分かる。
+//
+// 置かないもの：今日の支出の一覧。貯金の画面に「何に使ったか」が混ざると、見る目的がぼやける。
+// 記録できたかはトーストで分かり、確かめたり直したりするのは「きろく」の暦（今日の升）で行う。
 //
 // 何をどこに置くか
 // - まとめの札（ガラスは一画面にこの一枚）：今月の貯金。先に取り分けた額が、いま守れているか。
@@ -6,19 +10,23 @@
 //   使いすぎると「つかった」が「ちょきん」に食い込む（その分だけ色が変わり、上の数字が減る）
 // - 特別費（車検・結婚式など）は帯にも数字にも数えない。あった月だけ、札の下に一行で知らせる
 // - 今日つかえるお金：買う前にここを見る。札のすぐ下、スクロールしなくても見える所に、数字を大きく
-// - 今日のきろく：いま入れた記録が入ったか確かめる所。行を押すと直せる
+// - 月末の見込み：ふだんの支出を今日までのペースで月末まで伸ばしたとき、いくら貯まるか（monthOutlook）。
+//   棒は札の「今月の貯金」（目標まで。塗り）に、余りそうな使えるお金（輪郭だけ。まだ決まっていないので）を継ぎ足した形。
+//   札の数字と見込みの数字が別物に見えないよう、「取り分けた額＋上乗せ」として一本の棒で見せる。
+//   形は「あゆみ」の月ごとの棒と同じ（細い印は目標）。月末にそのまま、あゆみに並ぶものだと分かるように
+//   今日の分の下に置く（今日の分の中で暮らすと、この見込みが守られる、という順に読める）
 // - 記録するボタンは右下（AppShell）。この画面に主ボタンは足さない
 import { useNavigate } from "react-router";
 import { useExpensesInRange } from "../data/hooks";
 import type { Expense } from "../data/types";
 import { usePlans } from "../data/plan";
-import { dayKey, formatYen } from "../lib/format";
+import { formatYen } from "../lib/format";
 import { monthRange, parseMonthKey } from "../lib/months";
 import {
   budgetOf,
+  monthOutlook,
   monthResult,
   planFor,
-  sumAmount,
   sumNormal,
   sumSpecial,
   todayAllowance,
@@ -27,7 +35,6 @@ import {
 } from "../lib/savings";
 import { dayKeyToDate, useToday } from "../lib/useToday";
 import { Amount } from "../ui/Amount";
-import { ExpenseRow } from "../ui/ExpenseRow";
 import { Icon } from "../ui/Icon";
 
 export function HomeScreen() {
@@ -45,7 +52,6 @@ export function HomeScreen() {
   // 特別費は「使えるお金」に数えない
   const spent = sumNormal(expenses);
   const special = sumSpecial(expenses);
-  const todays = expenses.filter((e) => dayKey(new Date(e.date)) === todayKey && !e.isFixed);
 
   return (
     <div className="page home">
@@ -79,21 +85,12 @@ export function HomeScreen() {
         )}
       </section>
 
-      <section className="block">
-        <div className="block-head">
-          <h2 className="block-title">今日のきろく</h2>
-          {todays.length > 0 && <span className="block-value">{formatYen(sumAmount(todays))}</span>}
-        </div>
-        {todays.length > 0 ? (
-          <ul className="expenses">
-            {todays.map((e) => (
-              <ExpenseRow key={e.id} expense={e} />
-            ))}
-          </ul>
-        ) : (
-          <p className="quiet">{loading ? "　" : "今日はまだ記録がありません"}</p>
-        )}
-      </section>
+      {(plan || loading) && (
+        <section className="block" aria-label="月末の見込み">
+          <h2 className="block-title">月末の見込み</h2>
+          <Outlook plan={plan} expenses={expenses} today={today} loading={loading} />
+        </section>
+      )}
     </div>
   );
 }
@@ -136,7 +133,7 @@ function Summary({
           ) : (
             <>
               <Icon name="check" size="sm" />
-              守れています。使えるお金が余れば、月末に上乗せされます
+              守れています。手取り {plan ? formatYen(plan.income) : ""} から、先に取り分けてあります
             </>
           )}
         </p>
@@ -239,6 +236,58 @@ function Today({
                 : `今日の分を ${formatYen(a.overToday)} こえました。明日からは1日 ${formatYen(a.nextPerDay)}`
               : `今日の分は ${formatYen(a.perDay)}。月末まで${a.daysLeft}日、この中なら貯金は守れます`}
       </p>
+    </>
+  );
+}
+
+function Outlook({
+  plan,
+  expenses,
+  today,
+  loading,
+}: {
+  plan: Plan | null;
+  expenses: Expense[];
+  today: Date;
+  loading: boolean;
+}) {
+  const waiting = loading || !plan;
+  const o = plan ? monthOutlook(plan, expenses, today) : null;
+  const goal = plan?.goal ?? 0;
+  const saved = o?.saved ?? 0;
+  const scale = Math.max(1, goal, saved) * 1.15;
+  const pct = (n: number) => `${Math.min(100, Math.max(0, (n / scale) * 100))}%`;
+  const early = o !== null && o.elapsed <= 3 ? "まだ月の初めなので、ここから大きく変わります。" : "";
+  const note =
+    waiting || !o
+      ? "　"
+      : saved < 0
+        ? `${early}このままだと、手取りを ${formatYen(-saved)} こえて使うことになります`
+        : o.diff >= 0
+          ? `${early}このままのペースなら、使えるお金が ${formatYen(o.diff)} 余り、取り分けた ${formatYen(goal)} に上乗せされます`
+          : `${early}このままだと、取り分けた ${formatYen(goal)} に ${formatYen(-o.diff)} 食い込みます。今日の分の中で暮らせば守れます`;
+  return (
+    <>
+      <p className="outlook-amount">
+        <Amount value={saved} loading={waiting} className={saved < 0 ? "is-eaten" : "outlook-saving"} />
+      </p>
+      <span
+        className="month-track outlook-track"
+        role="img"
+        aria-label={o ? `目標 ${formatYen(goal)} に対して、見込み ${formatYen(saved)}` : undefined}
+      >
+        {!waiting && saved > 0 && (
+          <span className="month-fill" style={{ width: pct(Math.min(saved, goal)) }} />
+        )}
+        {!waiting && saved > goal && (
+          <span
+            className="outlook-extra"
+            style={{ left: pct(goal), width: `calc(${pct(saved - goal)} - 3px)` }}
+          />
+        )}
+        <span className="month-goal" style={{ left: pct(goal) }} />
+      </span>
+      <p className={o && o.diff < 0 ? "today-note is-short" : "today-note"}>{note}</p>
     </>
   );
 }

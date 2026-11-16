@@ -9,11 +9,11 @@ const config: AppConfig = {
 
   // 一番上の画面（どれも「見たい気持ち」で分けてある）
   //   ちょきん：今月の貯金は守れているか・今日あといくら使えるか（買う前に見る）
-  //   きろく：何にいくら使ったか（あの支出を確かめる・直す）
+  //   きろく：月を暦で振り返る・あの日の支出を確かめて直す（暦の画面なので暦の印）
   //   あゆみ：これまでにいくら貯まったか（月末に見る）
   tabs: [
     { path: "/", label: "ちょきん", icon: "home" },
-    { path: "/records", label: "きろく", icon: "list" },
+    { path: "/records", label: "きろく", icon: "calendar" },
     { path: "/journey", label: "あゆみ", icon: "chart" },
   ],
 
