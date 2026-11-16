@@ -5,12 +5,15 @@
 //   キーボードがせり上がって画面が動くこともない。キーは親指の届くシートの下半分に置く
 // - カテゴリーはよく使う順に並べて、押すだけ。新しい名前を足すときだけ文字を打つ
 // - 使った日は「今日」が最初から入っている。別の日にしたいときだけ押す。メモは打たなくてよい
-// - ［記録する］はいちばん下（テンキーのすぐ下）。金額とカテゴリーがそろうまで押せない
+// - ［記録する］はいちばん下（テンキーのすぐ下）。金額とカテゴリーがそろうまで押せない。
+//   シートの下端に留めるので、画面が低い端末でもスクロールで隠れない
 // - 特別費（車検・結婚式など）は、日付の隣の切り替え。めったに使わないので小さく、ただし打ち終える前に目に入る所。
 //   入れるとメモの欄の例が変わり、何のための印かが分かる
-// - レシートを撮る人は最初にそう決めているので、カメラは金額の左（打ち始める前に目に入る所）
+// - レシートを撮る人は最初にそう決めているので、カメラは［記録する］の右。右下の［記録する］で
+//   シートを開いた親指の位置のまま押せる。押すとすぐカメラが開き、撮った写真をそのまま読み始める
+//   （写真から選びたいときは、読み取りの画面の［写真から選ぶ］）
 // - 削除はいちばん下に離して置き、確認を挟む。消したあとも［元に戻す］で戻せる
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -23,6 +26,7 @@ import {
   updateExpense,
 } from "../data/expenses";
 import { useCategories } from "../data/hooks";
+import { useGeminiSettings } from "../receipt/useGeminiSettings";
 import type { Expense } from "../data/types";
 import { formatDay, formatYen } from "../lib/format";
 import { useFeedback } from "../ui/Feedback";
@@ -38,13 +42,24 @@ type Props = { open: boolean; expense: Expense | null; date?: string; onClose: (
 
 export function EntrySheet({ open, expense, date, onClose }: Props) {
   const [mode, setMode] = useState<"keys" | "receipt">("keys");
+  const [shot, setShot] = useState<File[]>([]);
   const { toast } = useFeedback();
   const navigate = useNavigate();
+  const { apiKey } = useGeminiSettings();
+  const camera = useRef<HTMLInputElement>(null);
+
+  // カメラを押したら、読み取りの画面を挟まずにすぐカメラを開く（押した操作の中で開かないと、
+  // iPhone ではカメラが開かない）。API キーがまだなら、登録の案内を出す
+  const openCamera = () => {
+    if (!apiKey) setMode("receipt");
+    else camera.current?.click();
+  };
   const title = expense ? "記録を直す" : mode === "receipt" ? "レシートを読む" : "記録する";
   return (
     <Sheet open={open} title={title} onClose={onClose}>
       {mode === "receipt" ? (
         <ReceiptReader
+          initialFiles={shot}
           onBack={() => setMode("keys")}
           onSetup={() => {
             onClose();
@@ -61,9 +76,24 @@ export function EntrySheet({ open, expense, date, onClose }: Props) {
           initialDate={date}
           active={open}
           onClose={onClose}
-          onReceipt={() => setMode("receipt")}
+          onReceipt={openCamera}
         />
       )}
+      <input
+        ref={camera}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={(e) => {
+          const files = [...(e.target.files ?? [])];
+          e.target.value = "";
+          // 撮らずに戻ったときは、手で入れる画面のまま
+          if (files.length === 0) return;
+          setShot(files);
+          setMode("receipt");
+        }}
+      />
     </Sheet>
   );
 }
@@ -164,11 +194,6 @@ function EntryForm({
   return (
     <div className="entry">
       <div className="entry-top">
-        {!expense && (
-          <button className="fk-icon-button" aria-label="レシートを読む" onClick={onReceipt}>
-            <Icon name="camera" />
-          </button>
-        )}
         <output className={value > 0 ? "entry-amount" : "entry-amount is-empty"} aria-label="金額">
           <span className="yen">¥</span>
           {value.toLocaleString("ja-JP")}
@@ -250,9 +275,21 @@ function EntryForm({
 
       <Keypad onPress={(k) => setAmount((a) => pressKey(a, k))} />
 
-      <button className="fk-button fk-button--primary fk-button--block" disabled={!ready} onClick={save}>
-        {expense ? "保存する" : "記録する"}
-      </button>
+      {/* 下端に留める：［記録する］と、その右にレシートのカメラ（新しい記録のときだけ） */}
+      <div className="sheet-actions entry-actions">
+        <button className="fk-button fk-button--primary entry-save" disabled={!ready} onClick={save}>
+          {expense ? "保存する" : "記録する"}
+        </button>
+        {!expense && (
+          <button
+            className="fk-icon-button entry-camera"
+            aria-label="レシートを撮って読む"
+            onClick={onReceipt}
+          >
+            <Icon name="camera" />
+          </button>
+        )}
+      </div>
 
       {expense && (
         <button className="entry-delete" onClick={del}>

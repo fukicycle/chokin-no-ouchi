@@ -1371,6 +1371,37 @@
     inset -3px -3px 7px var(--fk-light);
   color: var(--fk-accent);
 }
+/* ---- シートの下端に留める操作（［記録する］・撮る・選ぶ） ----
+   中身が長くてもスクロールで隠れないよう、シートの中身の領域の下端に留める。
+   下を流れる中身が透けて読みにくくならないよう、地の色の面を敷き、上側だけ薄くぼかす
+   （シートはガラスなので、ここはガラスにしない：ガラスの中にガラスを入れない） */
+.sheet-actions {
+  position: sticky;
+  bottom: calc(var(--fk-space-6) * -1);
+  z-index: 1;
+  display: grid;
+  gap: var(--fk-space-3);
+  margin: 0 calc(var(--fk-space-4) * -1) calc(var(--fk-space-6) * -1);
+  padding: var(--fk-space-4) var(--fk-space-4) var(--fk-space-4);
+  /* シートの面（地 66%）に近い濃さにして、段差に見えないようにする */
+  background: linear-gradient(
+    color-mix(in oklab, var(--fk-ground) 0%, transparent),
+    color-mix(in oklab, var(--fk-ground) 78%, transparent) var(--fk-space-6)
+  );
+}
+.entry-actions {
+  display: flex;
+  align-items: center;
+}
+.entry-save {
+  flex: 1;
+}
+/* カメラは［記録する］の右。右下の［記録する］でシートを開いた親指の位置のまま押せる */
+.entry-camera {
+  width: 52px;
+  height: 52px;
+}
+
 /* 削除は主ボタンから離す */
 .entry-delete {
   justify-self: center;
