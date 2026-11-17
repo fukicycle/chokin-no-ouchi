@@ -12,7 +12,7 @@
 
 Firebase のデータは v1・v2 と同じ場所をそのまま使います（足したのは `budgets/{familyId}/plans`・`budgets/{familyId}/notes` と、支出の `isSpecial` だけ。データベースのルールは変えていません）。
 
-[fukicycle/app-template](https://github.com/fukicycle/app-template) から作り、デザインは [fukicycle/design](https://github.com/fukicycle/design) v0.4.0 を使っています。共通の仕組み（設定・通知・新しい版の知らせ方・公開の手順）は雛形の README のとおりです。
+[fukicycle/app-template](https://github.com/fukicycle/app-template) から作り、デザインは [fukicycle/design](https://github.com/fukicycle/design) v0.5.0 を使っています。共通の仕組み（設定・通知・新しい版の知らせ方・公開の手順）は雛形の README のとおりです。
 
 ## 開発
 
